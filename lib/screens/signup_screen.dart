@@ -113,9 +113,16 @@ class _SignupScreenState extends State<SignupScreen> {
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             decoration: InputDecoration(
-                              hintText: "Email",
+                              labelText: "Email",
+                              floatingLabelBehavior: FloatingLabelBehavior.auto,
                               filled: true,
                               fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFD9D9D9),
+                                ),
+                              ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(30),
                                 borderSide: const BorderSide(
@@ -131,10 +138,10 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return "Enter email";
+                                return "Please enter email";
                               }
                               if (!value.contains('@')) {
-                                return "Enter valid email";
+                                return "Please enter valid email";
                               }
                               return null;
                             },
@@ -145,9 +152,16 @@ class _SignupScreenState extends State<SignupScreen> {
                           TextFormField(
                             controller: _usernameController,
                             decoration: InputDecoration(
-                              hintText: "Username",
+                              labelText: "Username",
+                              floatingLabelBehavior: FloatingLabelBehavior.auto,
                               filled: true,
                               fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFD9D9D9),
+                                ),
+                              ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(30),
                                 borderSide: const BorderSide(
@@ -163,7 +177,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return "Enter username";
+                                return "Please enter username";
                               }
                               return null;
                             },
@@ -175,9 +189,16 @@ class _SignupScreenState extends State<SignupScreen> {
                             controller: _numberController,
                             keyboardType: TextInputType.phone,
                             decoration: InputDecoration(
-                              hintText: "Number",
+                              labelText: "Number",
+                              floatingLabelBehavior: FloatingLabelBehavior.auto,
                               filled: true,
                               fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFD9D9D9),
+                                ),
+                              ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(30),
                                 borderSide: const BorderSide(
@@ -193,7 +214,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return "Enter phone number";
+                                return "Please enter phone number";
                               }
                               return null;
                             },
@@ -205,7 +226,8 @@ class _SignupScreenState extends State<SignupScreen> {
                             controller: _passwordController,
                             obscureText: !showPassword,
                             decoration: InputDecoration(
-                              hintText: "Password",
+                              labelText: "Password",
+                              floatingLabelBehavior: FloatingLabelBehavior.auto,
                               filled: true,
                               fillColor: Colors.white,
                               suffixIcon: IconButton(
@@ -220,6 +242,12 @@ class _SignupScreenState extends State<SignupScreen> {
                                       : Icons.visibility_off,
                                 ),
                               ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFD9D9D9),
+                                ),
+                              ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(30),
                                 borderSide: const BorderSide(
@@ -235,7 +263,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return "Enter password";
+                                return "Please enter password";
                               }
                               if (value.length < 6) {
                                 return "Password must be at least 6 characters";
@@ -250,7 +278,8 @@ class _SignupScreenState extends State<SignupScreen> {
                             controller: _confirmPasswordController,
                             obscureText: !showConfirmPassword,
                             decoration: InputDecoration(
-                              hintText: "Confirm Password",
+                              labelText: "Confirm Password",
+                              floatingLabelBehavior: FloatingLabelBehavior.auto,
                               filled: true,
                               fillColor: Colors.white,
                               suffixIcon: IconButton(
@@ -263,6 +292,12 @@ class _SignupScreenState extends State<SignupScreen> {
                                   showConfirmPassword
                                       ? Icons.visibility
                                       : Icons.visibility_off,
+                                ),
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFD9D9D9),
                                 ),
                               ),
                               enabledBorder: OutlineInputBorder(
@@ -280,7 +315,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return "Confirm password";
+                                return "Please confirm password";
                               }
                               if (value != _passwordController.text) {
                                 return "Passwords do not match";
@@ -321,7 +356,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                 }
                               },
                               child: const Text(
-                                "Log in",
+                                "Sign Up",
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
