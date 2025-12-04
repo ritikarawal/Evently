@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'package:event_planner/screens/login_screen.dart';
+// import 'package:event_planner/screens/login_screen.dart';
+import 'package:event_planner/screens/onboarding_screen.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -17,7 +18,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(const Duration(seconds: 2), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        MaterialPageRoute(builder: (context) => const OnboardingScreen1()),
       );
     });
   }
