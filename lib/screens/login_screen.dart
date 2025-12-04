@@ -112,9 +112,16 @@ class _LoginScreenState extends State<LoginScreen> {
                           TextFormField(
                             controller: _usernameController,
                             decoration: InputDecoration(
-                              hintText: "Username",
+                              labelText: "Username",
+                              floatingLabelBehavior: FloatingLabelBehavior.auto,
                               filled: true,
                               fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFD9D9D9),
+                                ),
+                              ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(30),
                                 borderSide: const BorderSide(
@@ -130,7 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return "Enter username";
+                                return "Please enter username";
                               }
                               return null;
                             },
@@ -142,7 +149,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             controller: _passwordController,
                             obscureText: !showPassword,
                             decoration: InputDecoration(
-                              hintText: "Password",
+                              labelText: "Password",
+                              floatingLabelBehavior: FloatingLabelBehavior.auto,
                               filled: true,
                               fillColor: Colors.white,
                               suffixIcon: IconButton(
@@ -157,6 +165,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                       : Icons.visibility_off,
                                 ),
                               ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFD9D9D9),
+                                ),
+                              ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(30),
                                 borderSide: const BorderSide(
@@ -172,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return "Enter password";
+                                return "Please enter password";
                               }
                               return null;
                             },

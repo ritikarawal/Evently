@@ -26,6 +26,7 @@ class _SignupScreenState extends State<SignupScreen> {
             children: [
               const SizedBox(height: 40),
 
+              /// 🔵 Title
               const Text(
                 "Create Account",
                 style: TextStyle(
@@ -44,6 +45,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
               const SizedBox(height: 40),
 
+              /// 🟢 Email TextField
               TextField(
                 controller: emailCtrl,
                 decoration: InputDecoration(
@@ -57,6 +59,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
               const SizedBox(height: 20),
 
+              /// 🟢 Password
               TextField(
                 controller: passwordCtrl,
                 obscureText: isObscure,
@@ -79,6 +82,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
               const SizedBox(height: 20),
 
+              /// 🟢 Confirm Password
               TextField(
                 controller: confirmCtrl,
                 obscureText: isObscure2,
@@ -101,6 +105,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
               const SizedBox(height: 35),
 
+              /// 🟣 Signup Button
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -124,6 +129,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
               const SizedBox(height: 25),
 
+              /// Already have account? Login
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
