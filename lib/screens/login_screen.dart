@@ -1,3 +1,5 @@
+import 'package:event_planner/screens/dashboard_screen.dart';
+import 'package:event_planner/screens/forgotpassword_screen.dart';
 import 'package:event_planner/screens/signup_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:event_planner/common/mysnackbar.dart';
@@ -192,6 +194,25 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
 
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const ForgotpasswordScreen(),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                "Forgot password?",
+                                style: TextStyle(fontSize: 13, color: accent),
+                              ),
+                            ),
+                          ),
+
                           const SizedBox(height: 25),
 
                           SizedBox(
@@ -207,6 +228,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                   showMySnackBar(
                                     context: context,
                                     message: "Login Successful!",
+                                  );
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const DashboardScreen(),
+                                    ),
                                   );
 
                                   _usernameController.clear();
