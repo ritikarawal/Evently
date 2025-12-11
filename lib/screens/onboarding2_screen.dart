@@ -50,12 +50,12 @@ class Onboarding2Screen extends StatelessWidget {
             Expanded(
               flex: 5,
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
+                margin: const EdgeInsets.symmetric(horizontal: 30),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   image: DecorationImage(
                     fit: BoxFit.cover,
-                    image: AssetImage('assets/images/onboarding1.jpg'),
+                    image: AssetImage('assets/images/onboarding2.jpg'),
                   ),
                 ),
               ),

@@ -12,7 +12,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text('Dashboard Screen', style: TextStyle(fontSize: 24)),
+        child: Text(' I am Dashboard Screen', style: TextStyle(fontSize: 24)),
       ),
     );
   }

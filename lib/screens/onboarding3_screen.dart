@@ -54,7 +54,7 @@ class Onboarding3Screen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   image: DecorationImage(
                     fit: BoxFit.cover,
-                    image: AssetImage('assets/images/onboarding1.jpg'),
+                    image: AssetImage('assets/images/onboarding3.jpg'),
                   ),
                 ),
               ),
