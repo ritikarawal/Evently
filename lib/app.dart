@@ -1,4 +1,5 @@
 import 'package:event_planner/screens/Splash_screen.dart';
+import 'package:event_planner/theme/theme_data.dart';
 import 'package:flutter/material.dart';
 
 class App extends StatelessWidget {
@@ -6,6 +7,8 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    theme:
+    getApplicationTheme();
     return MaterialApp(
       initialRoute: '/splash',
       routes: {'/splash': (context) => SplashScreen()},
