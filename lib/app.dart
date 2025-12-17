@@ -7,10 +7,9 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    theme:
-    getApplicationTheme();
     return MaterialApp(
       initialRoute: '/splash',
+      theme: getApplicationTheme(),
       routes: {'/splash': (context) => SplashScreen()},
     );
   }

@@ -15,6 +15,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
-    return SizedBox.expand();
+    return Scaffold();
   }
 }
