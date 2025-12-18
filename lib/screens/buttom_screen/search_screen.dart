@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class CartScreen extends StatefulWidget {
-  const CartScreen({super.key});
+class SearchScreen extends StatefulWidget {
+  const SearchScreen({super.key});
 
   @override
-  State<CartScreen> createState() => _CartScreenState();
+  State<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _CartScreenState extends State<CartScreen> {
+class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController prinController = TextEditingController();
 
   final TextEditingController rateController = TextEditingController();

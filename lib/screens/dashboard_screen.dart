@@ -1,7 +1,7 @@
-import 'package:event_planner/screens/buttom_screen/about_screen.dart';
-import 'package:event_planner/screens/buttom_screen/cart_screen.dart';
-import 'package:event_planner/screens/buttom_screen/home_screen.dart';
 import 'package:event_planner/screens/buttom_screen/profile_screen.dart';
+import 'package:event_planner/screens/buttom_screen/search_screen.dart';
+import 'package:event_planner/screens/buttom_screen/home_screen.dart';
+import 'package:event_planner/screens/buttom_screen/notification_screen.dart';
 import 'package:flutter/material.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -19,28 +19,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   List<Widget> lstBottomScreen = [
     const HomeScreen(),
-    const CartScreen(),
+    const SearchScreen(),
+    const NotificationScreen(),
     const ProfileScreen(),
-    const AboutScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: background,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: background,
-        elevation: 0,
-        title: const Text(
-          'Events',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 24,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
+
       body: lstBottomScreen[_selectedIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
