@@ -1,5 +1,5 @@
 import 'dart:async';
-// import 'package:event_planner/screens/login_screen.dart';
+
 import 'package:event_planner/screens/onboarding_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -14,7 +14,6 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-
     Timer(const Duration(seconds: 2), () {
       Navigator.pushReplacement(
         context,
@@ -26,7 +25,6 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF8DCDC),
       body: SafeArea(
         child: Center(
           child: Column(
@@ -43,9 +41,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   width: 200,
                 ),
               ),
-
               const SizedBox(height: 5),
-
               const Text(
                 "Your event planning assistant.",
                 style: TextStyle(color: Colors.black, fontSize: 20),
