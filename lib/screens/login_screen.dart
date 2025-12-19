@@ -1,8 +1,5 @@
-import 'package:event_planner/screens/dashboard_screen.dart';
-import 'package:event_planner/screens/forgotpassword_screen.dart';
-import 'package:event_planner/screens/signup_screen.dart';
-import 'package:flutter/material.dart';
-import 'package:event_planner/common/mysnackbar.dart';
+import 'package:event_planner/widget/common_widget.dart';
+import 'package:flutter/material.dart'; // Add this import statement
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,12 +10,9 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool showPassword = false;
-
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
   final _formKey = GlobalKey<FormState>();
-
   final Color accent = const Color(0xFF7F0F23);
 
   @override
@@ -27,69 +21,38 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Column(
         children: [
           SizedBox(height: MediaQuery.of(context).padding.top + 40),
-
           Image.asset("assets/images/eventlylogo.png", height: 100),
-
           const SizedBox(height: 20),
-
+          // Sign Up / Log In Button Row
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SignupScreen(),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Center(
-                          child: Text(
-                            "Sign Up",
-                            style: TextStyle(
-                              color: accent,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: CustomButton(
+                    text: "Sign Up",
+                    color: Colors.white,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SignupScreen(),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: accent,
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          "Log in",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
+                ),
+                Expanded(
+                  child: CustomButton(
+                    text: "Log In",
+                    color: accent,
+                    onPressed: () {},
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-
           const SizedBox(height: 20),
-
           Expanded(
             child: Container(
               width: double.infinity,
@@ -108,33 +71,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const SizedBox(height: 10),
-
-                          TextFormField(
+                          CustomTextField(
+                            label: "Username",
                             controller: _usernameController,
-                            decoration: InputDecoration(
-                              labelText: "Username",
-                              floatingLabelBehavior: FloatingLabelBehavior.auto,
-                              filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFD9D9D9),
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFD9D9D9),
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
-                                borderSide: const BorderSide(
-                                  color: Colors.black26,
-                                ),
-                              ),
-                            ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return "Please enter username";
@@ -142,47 +81,22 @@ class _LoginScreenState extends State<LoginScreen> {
                               return null;
                             },
                           ),
-
                           const SizedBox(height: 15),
-
-                          TextFormField(
+                          CustomTextField(
+                            label: "Password",
                             controller: _passwordController,
                             obscureText: !showPassword,
-                            decoration: InputDecoration(
-                              labelText: "Password",
-                              floatingLabelBehavior: FloatingLabelBehavior.auto,
-                              filled: true,
-                              fillColor: Colors.white,
-                              suffixIcon: IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    showPassword = !showPassword;
-                                  });
-                                },
-                                icon: Icon(
-                                  showPassword
-                                      ? Icons.visibility
-                                      : Icons.visibility_off,
-                                ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                showPassword
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
                               ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFD9D9D9),
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFD9D9D9),
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(30),
-                                borderSide: const BorderSide(
-                                  color: Colors.black26,
-                                ),
-                              ),
+                              onPressed: () {
+                                setState(() {
+                                  showPassword = !showPassword;
+                                });
+                              },
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -191,90 +105,17 @@ class _LoginScreenState extends State<LoginScreen> {
                               return null;
                             },
                           ),
-
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const ForgotpasswordScreen(),
-                                  ),
-                                );
-                              },
-                              child: Text(
-                                "Forgot password?",
-                                style: TextStyle(fontSize: 13, color: accent),
-                              ),
-                            ),
-                          ),
-
                           const SizedBox(height: 25),
-
-                          SizedBox(
-                            height: 50,
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: accent,
-                                shape: const StadiumBorder(),
-                              ),
-                              onPressed: () {
-                                if (_formKey.currentState!.validate()) {
-                                  showMySnackBar(
-                                    context: context,
-                                    message: "Login Successful!",
-                                  );
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const DashboardScreen(),
-                                    ),
-                                  );
-
-                                  _usernameController.clear();
-                                  _passwordController.clear();
-                                }
-                              },
-                              child: const Text(
-                                "Log in",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
+                          CustomButton(
+                            text: "Log in",
+                            color: accent,
+                            onPressed: () {
+                              if (_formKey.currentState!.validate()) {
+                                // Handle login logic here
+                              }
+                            },
                           ),
-
                           const SizedBox(height: 20),
-
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text("Don't have an account? "),
-                              InkWell(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const SignupScreen(),
-                                    ),
-                                  );
-                                },
-                                child: Text(
-                                  "Sign Up",
-                                  style: TextStyle(
-                                    color: accent,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
                         ],
                       ),
                     ),

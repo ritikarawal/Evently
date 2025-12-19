@@ -7,7 +7,6 @@ ThemeData getApplicationTheme() {
     useMaterial3: true,
 
     scaffoldBackgroundColor: AppColors.background,
-
     fontFamily: 'OpenSans',
 
     colorScheme: ColorScheme.fromSeed(
@@ -19,6 +18,7 @@ ThemeData getApplicationTheme() {
     appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.background,
       elevation: 0,
+      centerTitle: false,
       titleTextStyle: AppTextStyles.appBarTitle,
       iconTheme: IconThemeData(color: AppColors.textPrimary),
     ),
@@ -29,6 +29,7 @@ ThemeData getApplicationTheme() {
         foregroundColor: Colors.white,
         textStyle: AppTextStyles.button,
         shape: const StadiumBorder(),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       ),
     ),
 
@@ -36,9 +37,9 @@ ThemeData getApplicationTheme() {
       backgroundColor: AppColors.navBackground,
       selectedItemColor: AppColors.navSelected,
       unselectedItemColor: AppColors.navUnselected,
+      type: BottomNavigationBarType.fixed,
       showSelectedLabels: false,
       showUnselectedLabels: false,
-      type: BottomNavigationBarType.fixed,
     ),
 
     cardTheme: CardThemeData(
@@ -46,6 +47,24 @@ ThemeData getApplicationTheme() {
       elevation: 4,
       shadowColor: AppColors.cardShadow,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    ),
+
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: AppColors.border),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: AppColors.border),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: AppColors.primary),
+      ),
     ),
   );
 }
