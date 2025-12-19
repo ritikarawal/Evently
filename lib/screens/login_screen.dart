@@ -19,13 +19,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final _formKey = GlobalKey<FormState>();
 
-  final Color background = const Color(0xFFF8DCDC);
   final Color accent = const Color(0xFF7F0F23);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: background,
       body: Column(
         children: [
           SizedBox(height: MediaQuery.of(context).padding.top + 40),

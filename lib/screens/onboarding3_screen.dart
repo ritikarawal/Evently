@@ -4,13 +4,11 @@ import 'package:event_planner/screens/login_screen.dart';
 class Onboarding3Screen extends StatelessWidget {
   const Onboarding3Screen({super.key});
 
-  final Color background = const Color(0xFFF8DCDC);
   final Color accent = const Color(0xFF7F0F23);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: background,
       body: SafeArea(
         child: Column(
           children: [
