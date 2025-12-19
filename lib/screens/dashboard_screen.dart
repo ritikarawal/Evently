@@ -33,10 +33,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
         ),
         child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.transparent,
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.white.withOpacity(0.6),
           currentIndex: _selectedIndex,
           onTap: (index) {
             setState(() {

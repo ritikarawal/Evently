@@ -18,5 +18,12 @@ ThemeData getApplicationTheme() {
         shape: const StadiumBorder(),
       ),
     ),
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: Color(0xFF7F0F23),
+      selectedItemColor: Colors.white,
+      unselectedItemColor: Colors.white.withOpacity(0.6),
+      // unselectedIconTheme: IconThemeData(color: Colors.white),
+      type: BottomNavigationBarType.fixed,
+    ),
   );
 }
