@@ -1,5 +1,5 @@
 import 'package:event_planner/screens/Splash_screen.dart';
-import 'package:event_planner/theme/theme_data.dart';
+import 'package:event_planner/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class App extends StatelessWidget {
