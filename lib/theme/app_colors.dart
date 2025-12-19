@@ -5,7 +5,7 @@ class AppColors {
   static const Color background = Color(0xFFF8DCDC);
   static const Color surface = Colors.white;
 
-  // Primary (Burgundy)
+  // Primary
   static const Color primary = Color(0xFF7F0F23);
   static const Color primaryLight = Color(0xFFF3C6CC);
 
@@ -24,4 +24,6 @@ class AppColors {
 
   // Borders
   static const Color border = Color(0xFFD9D9D9);
+
+  static Color? get accent => null;
 }

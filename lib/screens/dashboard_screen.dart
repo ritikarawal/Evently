@@ -1,7 +1,8 @@
-import 'package:event_planner/screens/buttom_screen/profile_screen.dart';
-import 'package:event_planner/screens/buttom_screen/search_screen.dart';
 import 'package:event_planner/screens/buttom_screen/home_screen.dart';
 import 'package:event_planner/screens/buttom_screen/notification_screen.dart';
+import 'package:event_planner/screens/buttom_screen/profile_screen.dart';
+import 'package:event_planner/screens/buttom_screen/search_screen.dart';
+import 'package:event_planner/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -13,8 +14,6 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
-
-  final Color accent = const Color(0xFF800020);
 
   final List<Widget> lstBottomScreen = const [
     HomeScreen(),
@@ -29,7 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: lstBottomScreen[_selectedIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: accent,
+          color: AppColors.navBackground,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
         ),
         child: BottomNavigationBar(
