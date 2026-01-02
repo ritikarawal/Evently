@@ -12,7 +12,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final TextEditingController secondController = TextEditingController();
   int result = 0;
-  final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold();
