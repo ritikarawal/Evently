@@ -24,8 +24,13 @@ class AuthViewModel extends Notifier<AuthState> {
     _getCurrentUserUseCase = ref.read(getCurrentUserUseCaseProvider);
     _logoutUseCase = ref.read(logoutUsecaseProvider);
 
-    // Check for existing session on build
-    Future.microtask(() => getCurrentUser());
+    // Check for existing session on build (only if not already authenticated)
+    Future.microtask(() {
+      final currentState = state;
+      if (currentState.status != AuthStatus.authenticated) {
+        getCurrentUser();
+      }
+    });
 
     return const AuthState();
   }
@@ -73,7 +78,10 @@ class AuthViewModel extends Notifier<AuthState> {
 
   /// Checks if a session exists (e.g., on app startup)
   Future<void> getCurrentUser() async {
-    state = state.copyWith(status: AuthStatus.loading);
+    // Only set loading if not already in a final state
+    if (state.status == AuthStatus.initial) {
+      state = state.copyWith(status: AuthStatus.loading);
+    }
 
     final result = await _getCurrentUserUseCase();
 

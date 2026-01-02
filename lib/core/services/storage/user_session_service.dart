@@ -15,6 +15,9 @@ final userSessionServiceProvider = Provider<UserSessionService>((ref) {
 class UserSessionService {
   final SharedPreferences _prefs;
 
+  // Session expiration duration (30 days)
+  static const Duration sessionExpiration = Duration(days: 30);
+
   // Keys for storing user data
   static const String _keyIsLoggedIn = 'is_logged_in';
   static const String _keyUserId = 'user_id';
@@ -23,6 +26,7 @@ class UserSessionService {
   static const String _keyUserUsername = 'user_username';
   static const String _keyUserPhoneNumber = 'user_phone_number';
   static const String _keyUserProfilePicture = 'user_profile_picture';
+  static const String _keySessionTimestamp = 'session_timestamp';
 
   UserSessionService({required SharedPreferences prefs}) : _prefs = prefs;
 
@@ -40,6 +44,10 @@ class UserSessionService {
     await _prefs.setString(_keyUserEmail, email);
     await _prefs.setString(_keyUserFullName, fullName);
     await _prefs.setString(_keyUserUsername, username);
+    await _prefs.setInt(
+      _keySessionTimestamp,
+      DateTime.now().millisecondsSinceEpoch,
+    );
     if (phoneNumber != null) {
       await _prefs.setString(_keyUserPhoneNumber, phoneNumber);
     }
@@ -49,7 +57,29 @@ class UserSessionService {
   }
 
   // Session check methods
-  bool isLoggedIn() => _prefs.getBool(_keyIsLoggedIn) ?? false;
+  bool isLoggedIn() {
+    if (!(_prefs.getBool(_keyIsLoggedIn) ?? false)) {
+      return false;
+    }
+
+    // Check if session has expired
+    final timestamp = _prefs.getInt(_keySessionTimestamp);
+    if (timestamp == null) {
+      return false;
+    }
+
+    final sessionTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    final now = DateTime.now();
+
+    if (now.difference(sessionTime) > sessionExpiration) {
+      // Session expired, clear it
+      clearSession();
+      return false;
+    }
+
+    return true;
+  }
+
   String? getCurrentUserId() => _prefs.getString(_keyUserId);
   String? getCurrentUserEmail() => _prefs.getString(_keyUserEmail);
   String? getCurrentUserFullName() => _prefs.getString(_keyUserFullName);
@@ -67,5 +97,6 @@ class UserSessionService {
     await _prefs.remove(_keyUserUsername);
     await _prefs.remove(_keyUserPhoneNumber);
     await _prefs.remove(_keyUserProfilePicture);
+    await _prefs.remove(_keySessionTimestamp);
   }
 }

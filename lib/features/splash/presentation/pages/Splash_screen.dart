@@ -27,7 +27,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     if (!mounted) return;
 
     // Get current auth state
-    final authViewModel = ref.read(authViewModelProvider.notifier);
     final authState = ref.read(authViewModelProvider);
 
     // Navigate based on session status
