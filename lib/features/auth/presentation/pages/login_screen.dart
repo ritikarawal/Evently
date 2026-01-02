@@ -1,9 +1,9 @@
 import 'package:event_planner/widget/common_widget.dart';
 import 'package:flutter/material.dart';
-import 'dashboard_screen.dart';
+import '../../../dashboard/presentation/pages/dashboard_screen.dart';
 import 'signup_screen.dart';
-import 'forgotpassword_screen.dart';
-import '../common/mysnackbar.dart';
+import '../../../forgotpassword/presentation/pages/forgotpassword_screen.dart';
+import '../../../../common/mysnackbar.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

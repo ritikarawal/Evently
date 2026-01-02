@@ -1,6 +1,6 @@
 import 'package:event_planner/features/onboarding/presentation/pages/onboarding3_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:event_planner/screens/login_screen.dart';
+import 'package:event_planner/features/auth/presentation/pages/login_screen.dart';
 
 class Onboarding2Screen extends StatelessWidget {
   const Onboarding2Screen({super.key});
