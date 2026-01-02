@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:event_planner/features/auth/data/datasources/local/auth_localdatasource.dart';
+import 'package:event_planner/core/services/storage/user_session_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/error/failures.dart';
 import '../models/auth_hive_model.dart';
@@ -9,14 +10,22 @@ import '../../domain/repositories/auth_repository.dart';
 // Create provider
 final authRepositoryProvider = Provider<IAuthRepository>((ref) {
   final authDatasource = ref.read(authLocalDataSourceProvider);
-  return AuthRepository(authDatasource: authDatasource);
+  final sessionService = ref.read(userSessionServiceProvider);
+  return AuthRepository(
+    authDatasource: authDatasource,
+    sessionService: sessionService,
+  );
 });
 
 class AuthRepository implements IAuthRepository {
   final AuthLocalDataSource _authDataSource;
+  final UserSessionService _sessionService;
 
-  AuthRepository({required AuthLocalDataSource authDatasource})
-    : _authDataSource = authDatasource;
+  AuthRepository({
+    required AuthLocalDataSource authDatasource,
+    required UserSessionService sessionService,
+  }) : _authDataSource = authDatasource,
+       _sessionService = sessionService;
 
   @override
   Future<Either<Failure, bool>> register(AuthEntity user) async {
@@ -49,6 +58,15 @@ class AuthRepository implements IAuthRepository {
     try {
       final model = await _authDataSource.login(email, password);
       if (model != null) {
+        // Save user session
+        await _sessionService.saveUserSession(
+          userId: model.authId!,
+          email: model.email,
+          fullName: model.fullName,
+          username: model.username,
+          phoneNumber: model.phoneNumber,
+          profilePicture: model.profilePicture,
+        );
         // Convert Hive Model back to Domain Entity for the UI
         return Right(model.toEntity());
       }
@@ -76,6 +94,8 @@ class AuthRepository implements IAuthRepository {
   @override
   Future<Either<Failure, bool>> logout() async {
     try {
+      // Clear session first
+      await _sessionService.clearSession();
       final result = await _authDataSource.logout();
       return Right(result);
     } catch (e) {

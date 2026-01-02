@@ -5,16 +5,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/error/failures.dart';
 import '../repositories/auth_repository.dart';
 
-// Create Provider
-final logoutUseCaseProvider = Provider<LogoutUseCase>((ref) {
+final logoutUsecaseProvider = Provider<LogoutUsecase>((ref) {
   final authRepository = ref.read(authRepositoryProvider);
-  return LogoutUseCase(authRepository: authRepository);
+  return LogoutUsecase(authRepository: authRepository);
 });
 
-class LogoutUseCase implements UsecaseWithoutParms<bool> {
+class LogoutUsecase implements UsecaseWithoutParms<bool> {
   final IAuthRepository _authRepository;
 
-  LogoutUseCase({required IAuthRepository authRepository})
+  LogoutUsecase({required IAuthRepository authRepository})
     : _authRepository = authRepository;
 
   @override
