@@ -1,6 +1,6 @@
 import 'package:event_planner/widget/common_widget.dart';
 import 'package:flutter/material.dart';
-import 'dashboard_screen.dart';
+import '../features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'signup_screen.dart';
 import 'forgotpassword_screen.dart';
 import '../common/mysnackbar.dart';

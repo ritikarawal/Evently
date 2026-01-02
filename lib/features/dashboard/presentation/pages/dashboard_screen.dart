@@ -1,7 +1,7 @@
-import 'package:event_planner/screens/buttom_screen/home_screen.dart';
-import 'package:event_planner/screens/buttom_screen/notification_screen.dart';
-import 'package:event_planner/screens/buttom_screen/profile_screen.dart';
-import 'package:event_planner/screens/buttom_screen/search_screen.dart';
+import 'package:event_planner/features/dashboard/presentation/pages/home_screen.dart';
+import 'package:event_planner/features/dashboard/presentation/pages/notification_screen.dart';
+import 'package:event_planner/features/dashboard/presentation/pages/profile_screen.dart';
+import 'package:event_planner/features/dashboard/presentation/pages/search_screen.dart';
 import 'package:event_planner/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 

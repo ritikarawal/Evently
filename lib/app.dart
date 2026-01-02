@@ -1,4 +1,4 @@
-import 'package:event_planner/screens/Splash_screen.dart';
+import 'package:event_planner/features/splash/presentation/pages/Splash_screen.dart';
 import 'package:event_planner/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
