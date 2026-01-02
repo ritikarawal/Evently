@@ -1,6 +1,6 @@
 import 'package:event_planner/widget/common_widget.dart';
 import 'package:flutter/material.dart';
-import '../common/mysnackbar.dart';
+import '../../../../common/mysnackbar.dart';
 import 'login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
