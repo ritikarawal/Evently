@@ -20,3 +20,11 @@ class ApiFailure extends Failure {
   const ApiFailure({String message = "API Failure", this.statusCode})
     : super(message);
 }
+
+class ServerFailure extends Failure {
+  const ServerFailure({String message = "Server Failure"}) : super(message);
+}
+
+class NetworkFailure extends Failure {
+  const NetworkFailure({String message = "Network Failure"}) : super(message);
+}
