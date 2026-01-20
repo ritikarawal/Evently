@@ -13,7 +13,7 @@ final authViewModelProvider = NotifierProvider<AuthViewModel, AuthState>(
 class AuthViewModel extends Notifier<AuthState> {
   late final RegisterUseCase _registerUseCase;
   late final LoginUseCase _loginUseCase;
-  late final GetCurrentUserUseCase _getCurrentUserUseCase;
+  late final GetCurrentUserUsecase _getCurrentUserUseCase;
   late final LogoutUsecase _logoutUseCase;
 
   @override
@@ -21,7 +21,7 @@ class AuthViewModel extends Notifier<AuthState> {
     // Initializing use cases from their respective providers
     _registerUseCase = ref.read(registerUsecaseProvider);
     _loginUseCase = ref.read(loginUseCaseProvider);
-    _getCurrentUserUseCase = ref.read(getCurrentUserUseCaseProvider);
+    _getCurrentUserUseCase = ref.read(getCurrentUserUsecaseProvider);
     _logoutUseCase = ref.read(logoutUsecaseProvider);
 
     // Check for existing session on build (only if not already authenticated)
@@ -36,7 +36,7 @@ class AuthViewModel extends Notifier<AuthState> {
   }
 
   /// Handles user registration
-  Future<void> register(AuthEntity user) async {
+  Future<void> register(AuthEntity user, String confirmPassword) async {
     state = state.copyWith(status: AuthStatus.loading);
 
     final result = await _registerUseCase(
@@ -45,6 +45,7 @@ class AuthViewModel extends Notifier<AuthState> {
         email: user.email,
         username: user.username,
         password: user.password!,
+        confirmPassword: confirmPassword,
         phoneNumber: user.phoneNumber,
       ),
     );

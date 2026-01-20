@@ -189,14 +189,29 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         onPressed: () {
                           if (authState.status != AuthStatus.loading &&
                               _formKey.currentState!.validate()) {
+                            // Prepare auth entity and also ensure backend-required fields
+                            final fullName = _fullNameController.text.trim();
+                            final names = fullName.split(' ');
+                            final firstName = names.isNotEmpty
+                                ? names.first
+                                : '';
+                            final lastName = names.length > 1
+                                ? names.sublist(1).join(' ')
+                                : '';
+
                             final newUser = AuthEntity(
-                              fullName: _fullNameController.text.trim(),
+                              fullName: fullName,
                               email: _emailController.text.trim(),
                               username: _usernameController.text.trim(),
                               phoneNumber: _phoneController.text.trim(),
                               password: _passwordController.text,
                             );
-                            authViewModel.register(newUser);
+
+                            // Register with confirm password
+                            authViewModel.register(
+                              newUser,
+                              _confirmPasswordController.text,
+                            );
                           }
                         },
                       ),

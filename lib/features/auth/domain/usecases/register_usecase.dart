@@ -2,8 +2,8 @@ import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:event_planner/core/error/failures.dart';
 import 'package:event_planner/core/usecases/app_usecases.dart';
-import 'package:event_planner/features/auth/data/repositories/auth_repository.dart';
-import 'package:event_planner/features/auth/domain/repositories/auth_repository.dart';
+import 'package:event_planner/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:event_planner/features/auth/domain/repositories/auth_repository_interface.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../entities/auth_entity.dart';
@@ -13,6 +13,7 @@ class RegisterParams extends Equatable {
   final String email;
   final String username;
   final String password;
+  final String confirmPassword;
   final String? phoneNumber;
 
   const RegisterParams({
@@ -20,11 +21,19 @@ class RegisterParams extends Equatable {
     required this.email,
     required this.username,
     required this.password,
+    required this.confirmPassword,
     this.phoneNumber,
   });
 
   @override
-  List<Object?> get props => [fullName, email, username, password, phoneNumber];
+  List<Object?> get props => [
+    fullName,
+    email,
+    username,
+    password,
+    confirmPassword,
+    phoneNumber,
+  ];
 }
 
 final registerUsecaseProvider = Provider<RegisterUseCase>((ref) {

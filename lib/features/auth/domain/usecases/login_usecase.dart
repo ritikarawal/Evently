@@ -2,9 +2,9 @@ import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:event_planner/core/error/failures.dart';
 import 'package:event_planner/core/usecases/app_usecases.dart';
-import 'package:event_planner/features/auth/data/repositories/auth_repository.dart';
+import 'package:event_planner/features/auth/domain/repositories/auth_repository_interface.dart';
 import 'package:event_planner/features/auth/domain/entities/auth_entity.dart';
-import 'package:event_planner/features/auth/domain/repositories/auth_repository.dart';
+import 'package:event_planner/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class LoginParams extends Equatable {

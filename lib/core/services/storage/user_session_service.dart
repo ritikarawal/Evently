@@ -1,16 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-// SharedPreferences instance provider
-final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
-  throw UnimplementedError('SharedPreferences must be overridden in main.dart');
-});
-
-// UserSessionService provider
-final userSessionServiceProvider = Provider<UserSessionService>((ref) {
-  final prefs = ref.read(sharedPreferencesProvider);
-  return UserSessionService(prefs: prefs);
-});
 
 class UserSessionService {
   final SharedPreferences _prefs;
@@ -27,6 +15,7 @@ class UserSessionService {
   static const String _keyUserPhoneNumber = 'user_phone_number';
   static const String _keyUserProfilePicture = 'user_profile_picture';
   static const String _keySessionTimestamp = 'session_timestamp';
+  static const String _keyToken = 'user_token';
 
   UserSessionService({required SharedPreferences prefs}) : _prefs = prefs;
 
@@ -38,6 +27,7 @@ class UserSessionService {
     required String username,
     String? phoneNumber,
     String? profilePicture,
+    String? token,
   }) async {
     await _prefs.setBool(_keyIsLoggedIn, true);
     await _prefs.setString(_keyUserId, userId);
@@ -53,6 +43,9 @@ class UserSessionService {
     }
     if (profilePicture != null) {
       await _prefs.setString(_keyUserProfilePicture, profilePicture);
+    }
+    if (token != null) {
+      await _prefs.setString(_keyToken, token);
     }
   }
 
@@ -85,8 +78,7 @@ class UserSessionService {
   String? getCurrentUserFullName() => _prefs.getString(_keyUserFullName);
   String? getCurrentUserUsername() => _prefs.getString(_keyUserUsername);
   String? getCurrentUserPhoneNumber() => _prefs.getString(_keyUserPhoneNumber);
-  String? getCurrentUserProfilePicture() =>
-      _prefs.getString(_keyUserProfilePicture);
+  String? getCurrentUserToken() => _prefs.getString(_keyToken);
 
   // Clear user session (logout)
   Future<void> clearSession() async {
@@ -98,5 +90,6 @@ class UserSessionService {
     await _prefs.remove(_keyUserPhoneNumber);
     await _prefs.remove(_keyUserProfilePicture);
     await _prefs.remove(_keySessionTimestamp);
+    await _prefs.remove(_keyToken);
   }
 }
