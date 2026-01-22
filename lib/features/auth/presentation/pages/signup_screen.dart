@@ -95,7 +95,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       AuthTextField(
                         label: "Full Name",
                         controller: _fullNameController,
-                        validator: (v) => v!.isEmpty ? "Enter full name" : null,
+                        validator: (v) {
+                          if (v!.isEmpty) return "Enter full name";
+                          final names = v.trim().split(' ');
+                          if (names.length < 2) {
+                            return "Please enter both first and last name";
+                          }
+                          return null;
+                        },
                       ),
 
                       const SizedBox(height: 15),

@@ -35,10 +35,16 @@ class AuthApiModel {
   }
 
   Map<String, dynamic> toJson() {
-    final nameParts = fullName.split(' ');
+    final nameParts = fullName.trim().split(' ');
+    // Ensure we have at least first and last name
+    final firstName = nameParts.isNotEmpty ? nameParts[0] : '';
+    final lastName = nameParts.length > 1
+        ? nameParts.sublist(1).join(' ')
+        : 'LastName';
+
     return {
-      'firstName': nameParts.isNotEmpty ? nameParts[0] : '',
-      'lastName': nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '',
+      'firstName': firstName,
+      'lastName': lastName.isNotEmpty ? lastName : 'LastName',
       'email': email,
       'username': username ?? email.split('@')[0],
       'phoneNumber': phoneNumber,
