@@ -78,6 +78,8 @@ class UserSessionService {
   String? getCurrentUserFullName() => _prefs.getString(_keyUserFullName);
   String? getCurrentUserUsername() => _prefs.getString(_keyUserUsername);
   String? getCurrentUserPhoneNumber() => _prefs.getString(_keyUserPhoneNumber);
+  String? getCurrentUserProfilePicture() =>
+      _prefs.getString(_keyUserProfilePicture);
   String? getCurrentUserToken() => _prefs.getString(_keyToken);
 
   // Clear user session (logout)

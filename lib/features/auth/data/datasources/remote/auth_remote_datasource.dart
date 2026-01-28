@@ -104,7 +104,7 @@ class AuthRemoteDataSource implements IAuthRemoteDataSource {
   Future<AuthApiModel?> updateProfilePicture(File imageFile) async {
     try {
       final formData = FormData.fromMap({
-        'image': await MultipartFile.fromFile(imageFile.path),
+        'profilePicture': await MultipartFile.fromFile(imageFile.path),
       });
 
       final response = await _dio.post(
@@ -112,13 +112,19 @@ class AuthRemoteDataSource implements IAuthRemoteDataSource {
         data: formData,
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = response.data as Map<String, dynamic>;
         final userData = responseData['data'] as Map<String, dynamic>;
         return AuthApiModel.fromJson(userData);
       }
       return null;
     } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        print('Profile picture endpoint not implemented on backend yet');
+        throw Exception(
+          'Profile picture upload feature is not available yet. Please contact support.',
+        );
+      }
       print('Update profile picture error: ${e.message}');
       rethrow;
     }

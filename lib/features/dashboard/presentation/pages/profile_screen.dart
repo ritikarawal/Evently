@@ -1,3 +1,4 @@
+import 'package:event_planner/core/api/api_endpoints.dart';
 import 'package:event_planner/features/auth/presentation/pages/login_screen.dart';
 import 'package:event_planner/features/auth/presentation/state/auth_state.dart';
 import 'package:event_planner/features/auth/presentation/view_model/auth_viewmodel.dart';
@@ -282,7 +283,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   user.profilePicture != null &&
                                       user.profilePicture!.isNotEmpty
                                   ? CachedNetworkImageProvider(
-                                      'http://YOUR_BACKEND_URL/${user.profilePicture}',
+                                      ApiEndpoints.getImageUrl(
+                                        user.profilePicture,
+                                      ),
                                     )
                                   : null,
                               child:
