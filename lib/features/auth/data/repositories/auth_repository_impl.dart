@@ -1,3 +1,4 @@
+import 'dart:io'; // Add this import
 import 'package:dartz/dartz.dart';
 import 'package:event_planner/core/error/failures.dart';
 import 'package:event_planner/core/services/connectivity/network_info.dart';
@@ -64,6 +65,8 @@ class AuthRepositoryImpl implements IAuthRepository {
             fullName: result.fullName,
             username: result.username ?? '',
             phoneNumber: result.phoneNumber,
+            profilePicture: result.profilePicture,
+            token: result.token,
           );
         }
 
@@ -105,6 +108,8 @@ class AuthRepositoryImpl implements IAuthRepository {
               fullName: result.fullName,
               username: result.username ?? email.split('@')[0],
               phoneNumber: result.phoneNumber,
+              profilePicture: result.profilePicture,
+              token: result.token,
             );
           }
 
@@ -127,16 +132,26 @@ class AuthRepositoryImpl implements IAuthRepository {
       }
 
       final userId = _userSessionService.getCurrentUserId();
-      if (userId == null) {
+      final email = _userSessionService.getCurrentUserEmail();
+      final fullName = _userSessionService.getCurrentUserFullName();
+      final username = _userSessionService.getCurrentUserUsername();
+      final phoneNumber = _userSessionService.getCurrentUserPhoneNumber();
+      final profilePicture = _userSessionService.getCurrentUserProfilePicture();
+
+      if (userId == null || email == null || fullName == null) {
         return const Right(null);
       }
 
-      final localUser = await _localDataSource.getUserById(userId);
-      if (localUser != null) {
-        return Right(localUser.toEntity());
-      }
+      // Build entity from session data
+      final user = AuthEntity(
+        email: email,
+        fullName: fullName,
+        username: username ?? email.split('@')[0],
+        phoneNumber: phoneNumber,
+        profilePicture: profilePicture,
+      );
 
-      return const Right(null);
+      return Right(user);
     } catch (e) {
       return Left(LocalDatabaseFailure(message: e.toString()));
     }
@@ -166,6 +181,56 @@ class AuthRepositoryImpl implements IAuthRepository {
         if (localUser != null) {
           return Right(localUser.toEntity());
         }
+        return Left(NetworkFailure(message: 'No internet connection'));
+      }
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  // Add this new method
+  @override
+  Future<Either<Failure, AuthEntity>> updateProfilePicture(
+    File imageFile,
+  ) async {
+    try {
+      if (await _networkInfo.isConnected) {
+        // Call remote API to update profile picture
+        final result = await _remoteDataSource.updateProfilePicture(imageFile);
+
+        if (result != null) {
+          // Update session with new profile picture
+          await _userSessionService.saveUserSession(
+            userId: result.id!,
+            email: result.email,
+            fullName: result.fullName,
+            username: result.username ?? result.email.split('@')[0],
+            phoneNumber: result.phoneNumber,
+            profilePicture: result.profilePicture,
+            token: _userSessionService.getCurrentUserToken(),
+          );
+
+          // Update local database with new profile picture
+          final userId = _userSessionService.getCurrentUserId();
+          if (userId != null) {
+            final hiveModel = AuthHiveModel(
+              authId: result.id,
+              fullName: result.fullName,
+              email: result.email,
+              username: result.username ?? result.email.split('@')[0],
+              phoneNumber: result.phoneNumber,
+              password: result.password,
+              profilePicture: result.profilePicture, // Update profile picture
+            );
+
+            // Update local storage
+            await _localDataSource.updateUser(hiveModel);
+          }
+
+          return Right(result.toEntity());
+        }
+        return Left(ServerFailure(message: 'Failed to update profile picture'));
+      } else {
         return Left(NetworkFailure(message: 'No internet connection'));
       }
     } catch (e) {

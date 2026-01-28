@@ -2,17 +2,42 @@ import 'package:dio/dio.dart';
 import 'package:event_planner/core/api/api_endpoints.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:event_planner/features/auth/data/repositories/auth_repository_impl.dart';
 
 /// Provider for Dio instance
 final dioProvider = Provider<Dio>((ref) {
+  final userSessionService = ref.read(userSessionServiceProvider);
+
   final dio = Dio(
     BaseOptions(
       baseUrl: ApiEndpoints.baseUrl,
       connectTimeout: ApiEndpoints.connectionTimeout,
       receiveTimeout: ApiEndpoints.receiveTimeout,
       headers: {
-        'Content-Type': 'application/json',
         'Accept': 'application/json',
+      },
+    ),
+  );
+
+  // Add auth interceptor to automatically include token
+  dio.interceptors.add(
+    InterceptorsWrapper(
+      onRequest: (options, handler) {
+        // Get token from session
+        final token = userSessionService.getCurrentUserToken();
+        if (token != null) {
+          options.headers['Authorization'] = 'Bearer $token';
+          print('🔑 Auth token added to request: ${options.path}');
+        } else {
+          print('⚠️ No token found for request: ${options.path}');
+        }
+        
+        // Don't override Content-Type for FormData (multipart/form-data)
+        if (options.data is! FormData) {
+          options.headers['Content-Type'] = 'application/json';
+        }
+        
+        return handler.next(options);
       },
     ),
   );
