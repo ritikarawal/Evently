@@ -9,6 +9,7 @@ class AuthApiModel {
   final String? password;
   final String? confirmPassword;
   final String? token;
+  final String? profilePicture;
 
   AuthApiModel({
     this.id,
@@ -19,6 +20,7 @@ class AuthApiModel {
     this.password,
     this.confirmPassword,
     this.token,
+    this.profilePicture,
   });
 
   factory AuthApiModel.fromJson(Map<String, dynamic> json) {
@@ -31,6 +33,7 @@ class AuthApiModel {
       password: json['password'] as String?,
       confirmPassword: json['confirmPassword'] as String?,
       token: json['token'] as String?,
+      profilePicture: json['profilePicture'] as String?,
     );
   }
 
@@ -50,6 +53,7 @@ class AuthApiModel {
       'phoneNumber': phoneNumber,
       'password': password,
       'confirmPassword': confirmPassword ?? password,
+      if (profilePicture != null) 'profilePicture': profilePicture,
     };
   }
 
@@ -60,5 +64,6 @@ class AuthApiModel {
     phoneNumber: phoneNumber,
     username: username ?? email.split('@')[0],
     password: password,
+    profilePicture: profilePicture,
   );
 }

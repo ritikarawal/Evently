@@ -1,3 +1,4 @@
+import 'dart:io'; // Add this import
 import 'package:dartz/dartz.dart';
 import 'package:event_planner/core/error/failures.dart';
 import 'package:event_planner/core/services/connectivity/network_info.dart';
@@ -166,6 +167,45 @@ class AuthRepositoryImpl implements IAuthRepository {
         if (localUser != null) {
           return Right(localUser.toEntity());
         }
+        return Left(NetworkFailure(message: 'No internet connection'));
+      }
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  // Add this new method
+  @override
+  Future<Either<Failure, AuthEntity>> updateProfilePicture(
+    File imageFile,
+  ) async {
+    try {
+      if (await _networkInfo.isConnected) {
+        // Call remote API to update profile picture
+        final result = await _remoteDataSource.updateProfilePicture(imageFile);
+
+        if (result != null) {
+          // Update local database with new profile picture
+          final userId = _userSessionService.getCurrentUserId();
+          if (userId != null) {
+            final hiveModel = AuthHiveModel(
+              authId: result.id,
+              fullName: result.fullName,
+              email: result.email,
+              username: result.username ?? result.email.split('@')[0],
+              phoneNumber: result.phoneNumber,
+              password: result.password,
+              profilePicture: result.profilePicture, // Update profile picture
+            );
+
+            // Update local storage
+            await _localDataSource.updateUser(hiveModel);
+          }
+
+          return Right(result.toEntity());
+        }
+        return Left(ServerFailure(message: 'Failed to update profile picture'));
+      } else {
         return Left(NetworkFailure(message: 'No internet connection'));
       }
     } catch (e) {
