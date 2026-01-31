@@ -64,11 +64,10 @@ class OnboardingScreen1 extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Column(
                       children: [
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 18),
                         Text(
                           'Welcome to Evently!',
                           textAlign: TextAlign.center,
@@ -101,6 +100,8 @@ class OnboardingScreen1 extends StatelessWidget {
                         ),
                       ],
                     ),
+
+                    const Spacer(),
 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
