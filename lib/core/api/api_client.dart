@@ -13,9 +13,7 @@ final dioProvider = Provider<Dio>((ref) {
       baseUrl: ApiEndpoints.baseUrl,
       connectTimeout: ApiEndpoints.connectionTimeout,
       receiveTimeout: ApiEndpoints.receiveTimeout,
-      headers: {
-        'Accept': 'application/json',
-      },
+      headers: {'Accept': 'application/json'},
     ),
   );
 
@@ -31,12 +29,12 @@ final dioProvider = Provider<Dio>((ref) {
         } else {
           print('⚠️ No token found for request: ${options.path}');
         }
-        
+
         // Don't override Content-Type for FormData (multipart/form-data)
         if (options.data is! FormData) {
           options.headers['Content-Type'] = 'application/json';
         }
-        
+
         return handler.next(options);
       },
     ),

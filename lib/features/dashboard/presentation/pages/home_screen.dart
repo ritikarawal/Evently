@@ -1,20 +1,17 @@
 import 'package:flutter/material.dart';
+import '../../../../widget/event_categories_grid.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  final TextEditingController firstController = TextEditingController();
-
-  final TextEditingController secondController = TextEditingController();
-  int result = 0;
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold();
+    return Scaffold(
+      backgroundColor: Colors.pink.shade50,
+      body: const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: EventCategoriesGrid(),
+      ),
+    );
   }
 }

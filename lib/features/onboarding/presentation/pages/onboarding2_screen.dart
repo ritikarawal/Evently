@@ -63,11 +63,10 @@ class Onboarding2Screen extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Column(
                       children: [
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 18),
                         Text(
                           'Stay Organized!',
                           textAlign: TextAlign.center,
@@ -100,6 +99,8 @@ class Onboarding2Screen extends StatelessWidget {
                         ),
                       ],
                     ),
+
+                    const Spacer(),
 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
