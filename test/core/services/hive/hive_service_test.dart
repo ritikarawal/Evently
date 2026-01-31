@@ -42,4 +42,17 @@ void main() {
     expect(result.email, 'test@example.com');
     expect(result.fullName, 'Test User');
   });
+  test('login returns null when email or password is incorrect', () async {
+    final user = AuthHiveModel(
+      authId: '2',
+      fullName: 'You You',
+      username: 'youyou',
+      email: 'you@test.com',
+      password: 'password',
+    );
+
+    await hiveService.register(user);
+    final result = hiveService.login('you@test.com', 'wrongpassword');
+    expect(result, isNull);
+  });
 }
