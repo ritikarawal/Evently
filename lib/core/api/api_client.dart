@@ -72,16 +72,13 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
-    try {
-      final response = await _dio.get(
+    return await _executeWithFallback(
+      () => _dio.get(
         endpoint,
         queryParameters: queryParameters,
         options: options,
-      );
-      return response;
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
+      ),
+    );
   }
 
   /// POST request
@@ -91,17 +88,14 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
-    try {
-      final response = await _dio.post(
+    return await _executeWithFallback(
+      () => _dio.post(
         endpoint,
         data: data,
         queryParameters: queryParameters,
         options: options,
-      );
-      return response;
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
+      ),
+    );
   }
 
   /// PUT request
@@ -111,17 +105,14 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
-    try {
-      final response = await _dio.put(
+    return await _executeWithFallback(
+      () => _dio.put(
         endpoint,
         data: data,
         queryParameters: queryParameters,
         options: options,
-      );
-      return response;
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
+      ),
+    );
   }
 
   /// PATCH request
@@ -131,17 +122,14 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
-    try {
-      final response = await _dio.patch(
+    return await _executeWithFallback(
+      () => _dio.patch(
         endpoint,
         data: data,
         queryParameters: queryParameters,
         options: options,
-      );
-      return response;
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
+      ),
+    );
   }
 
   /// DELETE request
@@ -151,15 +139,60 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
-    try {
-      final response = await _dio.delete(
+    return await _executeWithFallback(
+      () => _dio.delete(
         endpoint,
         data: data,
         queryParameters: queryParameters,
         options: options,
-      );
-      return response;
+      ),
+    );
+  }
+
+  /// Execute a request and if a connection error occurs, attempt alternate
+  /// base URLs (useful when switching between emulator, localhost, and
+  /// physical device IPs). If a fallback succeeds, the Dio instance baseUrl
+  /// is updated to the working URL.
+  Future<Response> _executeWithFallback(
+    Future<Response> Function() requestFn,
+  ) async {
+    try {
+      return await requestFn();
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionError) {
+        final originalBase = _dio.options.baseUrl;
+
+        final candidates = <String>{
+          ApiEndpoints.baseUrl,
+          // localhost variation
+          originalBase.replaceAll(
+            RegExp(r'http://[^:/]+'),
+            'http://localhost:5050',
+          ),
+          // Android emulator mapping
+          originalBase.replaceAll(
+            RegExp(r'http://[^:/]+'),
+            'http://10.0.2.2:5050',
+          ),
+        }..removeWhere((s) => s == null || s.isEmpty);
+
+        for (final candidate in candidates) {
+          if (candidate == originalBase) continue;
+          try {
+            _dio.options.baseUrl = candidate;
+            final res = await requestFn();
+            // success — keep this base for future
+            return res;
+          } catch (_) {
+            // continue trying other candidates
+          }
+        }
+
+        // restore original base URL if no candidate worked
+        _dio.options.baseUrl = originalBase;
+      }
+
+      // propagate a friendly error
       throw _handleError(e);
     }
   }

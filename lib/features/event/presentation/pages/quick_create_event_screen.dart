@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:event_planner/theme/app_colors.dart';
-import 'package:event_planner/features/event/presentation/pages/quick_create_event_screen.dart';
-import 'package:event_planner/features/event/presentation/pages/create_event_form_screen.dart';
+import 'create_event_form_screen.dart';
 
-class EventCategoriesGrid extends StatelessWidget {
-  const EventCategoriesGrid({super.key});
+class QuickCreateEventScreen extends StatelessWidget {
+  const QuickCreateEventScreen({super.key});
 
-  // List of event categories
   static final List<_EventCategory> eventCategories = [
     _EventCategory(
       icon: Icons.cake,
@@ -60,56 +58,69 @@ class EventCategoriesGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Quick Start',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Select a template to begin creating your event',
-            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 24),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 1.0,
-            ),
-            itemCount: eventCategories.length,
-            itemBuilder: (context, index) {
-              final category = eventCategories[index];
-              return EventCard(
-                icon: category.icon,
-                label: category.label,
-                color: category.color,
-                categoryKey: category.key,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => CreateEventFormScreen(
-                        category: category.label,
-                        categoryKey: category.key,
-                      ),
-                    ),
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Create Event'),
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        centerTitle: true,
+        automaticallyImplyLeading: true,
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Quick Start',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Select a template to begin',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 24),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1.0,
+                ),
+                itemCount: eventCategories.length,
+                itemBuilder: (context, index) {
+                  final category = eventCategories[index];
+                  return _CategoryCard(
+                    icon: category.icon,
+                    label: category.label,
+                    color: category.color,
+                    categoryKey: category.key,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CreateEventFormScreen(
+                            category: category.label,
+                            categoryKey: category.key,
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
-              );
-            },
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -129,15 +140,14 @@ class _EventCategory {
   });
 }
 
-class EventCard extends StatelessWidget {
+class _CategoryCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
   final String categoryKey;
   final VoidCallback onTap;
 
-  const EventCard({
-    super.key,
+  const _CategoryCard({
     required this.icon,
     required this.label,
     required this.color,
@@ -158,7 +168,7 @@ class EventCard extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
+              blurRadius: 6,
               offset: const Offset(0, 2),
             ),
           ],
@@ -167,18 +177,18 @@ class EventCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 40, color: color),
+              child: Icon(icon, size: 36, color: color),
             ),
             const SizedBox(height: 12),
             Text(
               label,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
