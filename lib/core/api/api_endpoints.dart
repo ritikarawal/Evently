@@ -7,7 +7,7 @@ class ApiEndpoints {
 
   static const bool isPhysicalDevice = true;
 
-  static const String compIpAddress = "10.1.1.56";
+  static const String compIpAddress = "192.168.18.79";
 
   static String get baseUrl {
     if (isPhysicalDevice) {
@@ -58,6 +58,7 @@ class ApiEndpoints {
   static const String userRegister = 'auth/register';
   static const String userById = 'auth/user/';
   static const String userByEmail = 'auth/user/email/';
+  static const String userProfile = 'auth/profile';
   static const String updateProfilePicture = 'auth/user/profile-picture';
 
   // ----------------------- EVENTS ----------------------

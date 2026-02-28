@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'package:event_planner/features/auth/domain/entities/auth_entity.dart';
+import 'package:event_planner/features/auth/domain/entities/update_profile_params.dart';
 import 'package:event_planner/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:event_planner/features/auth/domain/usecases/login_usecase.dart';
 import 'package:event_planner/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:event_planner/features/auth/domain/usecases/register_usecase.dart';
+import 'package:event_planner/features/auth/domain/usecases/update_profile_usecase.dart';
 import 'package:event_planner/features/auth/domain/usecases/update_profile_picture_usecase.dart';
 import 'package:event_planner/features/auth/presentation/state/auth_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +19,7 @@ class AuthViewModel extends Notifier<AuthState> {
   late final LoginUseCase _loginUseCase;
   late final GetCurrentUserUsecase _getCurrentUserUseCase;
   late final LogoutUsecase _logoutUseCase;
+  late final UpdateProfileUseCase _updateProfileUseCase;
   late final UpdateProfilePictureUseCase _updateProfilePictureUseCase;
 
   @override
@@ -26,6 +29,7 @@ class AuthViewModel extends Notifier<AuthState> {
     _loginUseCase = ref.read(loginUseCaseProvider);
     _getCurrentUserUseCase = ref.read(getCurrentUserUsecaseProvider);
     _logoutUseCase = ref.read(logoutUsecaseProvider);
+    _updateProfileUseCase = ref.read(updateProfileUsecaseProvider);
     _updateProfilePictureUseCase = ref.read(
       updateProfilePictureUsecaseProvider,
     );
@@ -133,6 +137,26 @@ class AuthViewModel extends Notifier<AuthState> {
       ),
       (user) =>
           state = state.copyWith(status: AuthStatus.authenticated, user: user),
+    );
+  }
+
+  Future<bool> updateProfile(UpdateProfileParams params) async {
+    state = state.copyWith(status: AuthStatus.loading);
+
+    final result = await _updateProfileUseCase(params);
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          status: AuthStatus.error,
+          errorMessage: failure.message,
+        );
+        return false;
+      },
+      (user) {
+        state = state.copyWith(status: AuthStatus.authenticated, user: user);
+        return true;
+      },
     );
   }
 

@@ -15,12 +15,14 @@ ThemeData getApplicationTheme() {
       background: AppColors.background,
     ),
 
-    appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.background,
+    appBarTheme: AppBarTheme(
+      backgroundColor: AppColors.surface,
       elevation: 0,
       centerTitle: false,
       titleTextStyle: AppTextStyles.appBarTitle,
-      iconTheme: IconThemeData(color: AppColors.textPrimary),
+      iconTheme: const IconThemeData(color: AppColors.textPrimary),
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Colors.transparent,
     ),
 
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -34,32 +36,37 @@ ThemeData getApplicationTheme() {
     ),
 
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: AppColors.navBackground,
+      backgroundColor: Color(0xCC7F0F23),
       selectedItemColor: AppColors.navSelected,
       unselectedItemColor: AppColors.navUnselected,
       type: BottomNavigationBarType.fixed,
       showSelectedLabels: false,
       showUnselectedLabels: false,
+      elevation: 0,
     ),
 
     cardTheme: CardThemeData(
       color: AppColors.cardBackground,
-      elevation: 4,
+      elevation: 0,
       shadowColor: AppColors.cardShadow,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: AppColors.glassBorder),
+      ),
     ),
 
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Colors.white,
+      fillColor: AppColors.surface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: const BorderSide(color: AppColors.glassBorder),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: const BorderSide(color: AppColors.glassBorder),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),

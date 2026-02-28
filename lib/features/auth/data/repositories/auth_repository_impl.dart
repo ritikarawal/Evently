@@ -6,6 +6,7 @@ import 'package:event_planner/features/auth/data/datasources/auth_datasource.dar
 import 'package:event_planner/features/auth/data/models/auth_api_model.dart';
 import 'package:event_planner/features/auth/data/models/auth_hive_model.dart';
 import 'package:event_planner/features/auth/domain/entities/auth_entity.dart';
+import 'package:event_planner/features/auth/domain/entities/update_profile_params.dart';
 import 'package:event_planner/features/auth/domain/repositories/auth_repository_interface.dart';
 import 'package:event_planner/core/services/storage/user_session_service.dart';
 import 'package:event_planner/core/providers/shared_preferences_provider.dart';
@@ -183,6 +184,50 @@ class AuthRepositoryImpl implements IAuthRepository {
         }
         return Left(NetworkFailure(message: 'No internet connection'));
       }
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AuthEntity>> updateProfile(
+    UpdateProfileParams params,
+  ) async {
+    try {
+      if (await _networkInfo.isConnected) {
+        final result = await _remoteDataSource.updateProfile(params.toJson());
+        if (result == null) {
+          return Left(ServerFailure(message: 'Failed to update profile'));
+        }
+
+        final currentUserId =
+            _userSessionService.getCurrentUserId() ?? result.id ?? '';
+        await _userSessionService.saveUserSession(
+          userId: currentUserId,
+          email: result.email,
+          fullName: result.fullName,
+          username: result.username ?? result.email.split('@')[0],
+          phoneNumber: result.phoneNumber,
+          profilePicture: result.profilePicture,
+          token: _userSessionService.getCurrentUserToken(),
+        );
+
+        await _localDataSource.updateUser(
+          AuthHiveModel(
+            authId: currentUserId,
+            fullName: result.fullName,
+            email: result.email,
+            username: result.username ?? result.email.split('@')[0],
+            phoneNumber: result.phoneNumber,
+            password: result.password,
+            profilePicture: result.profilePicture,
+          ),
+        );
+
+        return Right(result.toEntity());
+      }
+
+      return Left(NetworkFailure(message: 'No internet connection'));
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }

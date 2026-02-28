@@ -1,4 +1,8 @@
+import 'dart:io';
+
 import 'package:event_planner/core/api/api_endpoints.dart';
+import 'package:event_planner/features/auth/domain/entities/auth_entity.dart';
+import 'package:event_planner/features/auth/domain/entities/update_profile_params.dart';
 import 'package:event_planner/features/auth/presentation/pages/login_screen.dart';
 import 'package:event_planner/features/auth/presentation/state/auth_state.dart';
 import 'package:event_planner/features/auth/presentation/view_model/auth_viewmodel.dart';
@@ -8,7 +12,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'dart:io';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -19,11 +22,28 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final ImagePicker _picker = ImagePicker();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  late final TextEditingController _firstNameController;
+  late final TextEditingController _lastNameController;
+  late final TextEditingController _usernameController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _phoneController;
+  late final TextEditingController _passwordController;
+  late final TextEditingController _confirmPasswordController;
+  bool _isSavingProfile = false;
+  bool _isEditFormVisible = false;
 
   @override
   void initState() {
     super.initState();
-    // Load user data when profile screen is opened
+    _firstNameController = TextEditingController();
+    _lastNameController = TextEditingController();
+    _usernameController = TextEditingController();
+    _emailController = TextEditingController();
+    _phoneController = TextEditingController();
+    _passwordController = TextEditingController();
+    _confirmPasswordController = TextEditingController();
+
     Future.microtask(() {
       final authViewModel = ref.read(authViewModelProvider.notifier);
       final authState = ref.read(authViewModelProvider);
@@ -225,10 +245,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _usernameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authViewModelProvider);
     final authViewModel = ref.read(authViewModelProvider.notifier);
     final user = authState.user;
+
+    ref.listen<AuthState>(authViewModelProvider, (previous, next) {
+      final nextUser = next.user;
+      if (nextUser != null && nextUser != previous?.user) {
+        _populateProfileFields(nextUser);
+      }
+    });
+    if (user != null && _firstNameController.text.isEmpty) {
+      _populateProfileFields(user);
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -369,6 +411,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   child: const Center(child: CircularProgressIndicator()),
                 ),
               const SizedBox(height: 24),
+              if (user != null) ...[
+                _isEditFormVisible
+                    ? _buildEditProfileSection()
+                    : _buildEditProfileButton(),
+                const SizedBox(height: 24),
+              ],
               // Information Section
               const Text(
                 'Account Information',
@@ -479,6 +527,86 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  Future<void> _saveProfile() async {
+    if (_isSavingProfile) return;
+    if (_formKey.currentState?.validate() != true) return;
+
+    FocusScope.of(context).unfocus();
+    final params = UpdateProfileParams(
+      firstName: _firstNameController.text.trim(),
+      lastName: _lastNameController.text.trim(),
+      username: _usernameController.text.trim(),
+      email: _emailController.text.trim(),
+      phoneNumber: _phoneController.text.trim(),
+      password: _passwordController.text.isEmpty
+          ? null
+          : _passwordController.text,
+    );
+
+    setState(() => _isSavingProfile = true);
+    final authViewModel = ref.read(authViewModelProvider.notifier);
+    final success = await authViewModel.updateProfile(params);
+
+    if (!mounted) return;
+    setState(() => _isSavingProfile = false);
+
+    final currentState = ref.read(authViewModelProvider);
+    final message = success
+        ? 'Profile updated successfully'
+        : currentState.errorMessage ?? 'Failed to update profile';
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+
+    if (success) {
+      setState(() => _isEditFormVisible = false);
+      _passwordController.clear();
+      _confirmPasswordController.clear();
+    } else {
+      authViewModel.clearError();
+    }
+  }
+
+  void _populateProfileFields(AuthEntity user) {
+    final nameParts = user.fullName.trim().split(RegExp(r'\s+'));
+    _firstNameController.text = nameParts.isNotEmpty ? nameParts.first : '';
+    _lastNameController.text = nameParts.length > 1
+        ? nameParts.sublist(1).join(' ')
+        : '';
+    _usernameController.text = user.username;
+    _emailController.text = user.email;
+    _phoneController.text = user.phoneNumber ?? '';
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    TextInputType keyboardType = TextInputType.text,
+    bool obscureText = false,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      obscureText: obscureText,
+      validator: validator,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: AppColors.textSecondary),
+        filled: true,
+        fillColor: AppColors.surface,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.glassBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.glassBorder),
+        ),
+      ),
+    );
+  }
+
   Widget _buildInfoCard({
     required IconData icon,
     required String label,
@@ -574,6 +702,227 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             textAlign: TextAlign.center,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEditProfileButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: ElevatedButton.icon(
+        onPressed: () {
+          setState(() {
+            _isEditFormVisible = true;
+          });
+        },
+        icon: const Icon(Icons.edit, size: 20),
+        label: const Text(
+          'Edit Profile',
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEditProfileSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Edit Profile',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _firstNameController,
+              decoration: InputDecoration(
+                labelText: 'First Name',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter first name';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _lastNameController,
+              decoration: InputDecoration(
+                labelText: 'Last Name',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _usernameController,
+              decoration: InputDecoration(
+                labelText: 'Username',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter username';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _emailController,
+              decoration: InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter email';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _phoneController,
+              decoration: InputDecoration(
+                labelText: 'Phone Number',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _isEditFormVisible = false;
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.textSecondary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _isSavingProfile
+                        ? null
+                        : () async {
+                            if (_formKey.currentState!.validate()) {
+                              setState(() {
+                                _isSavingProfile = true;
+                              });
+
+                              final authViewModel = ref.read(
+                                authViewModelProvider.notifier,
+                              );
+                              final params = UpdateProfileParams(
+                                firstName: _firstNameController.text,
+                                lastName: _lastNameController.text,
+                                username: _usernameController.text,
+                                email: _emailController.text,
+                                phoneNumber: _phoneController.text,
+                              );
+
+                              await authViewModel.updateProfile(params);
+
+                              if (mounted) {
+                                setState(() {
+                                  _isSavingProfile = false;
+                                  _isEditFormVisible = false;
+                                });
+
+                                final authState = ref.read(
+                                  authViewModelProvider,
+                                );
+                                if (authState.status ==
+                                    AuthStatus.authenticated) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Profile updated successfully',
+                                      ),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                }
+                              }
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: _isSavingProfile
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                        : const Text(
+                            'Save',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

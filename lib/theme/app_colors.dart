@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Backgrounds
-  static const Color background = Color(0xFFF8DCDC);
-  static const Color surface = Colors.white;
+  static const Color background = Color(0xFFF2E7EB);
+  static const Color surface = Color(0xCCFFFFFF);
 
   // Primary
   static const Color primary = Color(0xFF7F0F23);
@@ -19,8 +19,10 @@ class AppColors {
   static const Color navUnselected = Color(0x99FFFFFF);
 
   // Cards
-  static const Color cardBackground = Colors.white;
-  static const Color cardShadow = Colors.black12;
+  static const Color cardBackground = Color(0x66FFFFFF);
+  static const Color cardShadow = Color(0x22000000);
+  static const Color glassBorder = Color(0x80FFFFFF);
+  static const Color glassHighlight = Color(0x99FFFFFF);
 
   // Borders
   static const Color border = Color(0xFFD9D9D9);

@@ -101,6 +101,23 @@ class AuthRemoteDataSource implements IAuthRemoteDataSource {
   }
 
   @override
+  Future<AuthApiModel?> updateProfile(Map<String, dynamic> payload) async {
+    try {
+      final response = await _dio.put(ApiEndpoints.userProfile, data: payload);
+
+      if (response.statusCode == 200) {
+        final responseData = response.data as Map<String, dynamic>;
+        final userData = responseData['data'] as Map<String, dynamic>;
+        return AuthApiModel.fromJson(userData);
+      }
+      return null;
+    } on DioException catch (e) {
+      print('Update profile error: ${e.message}');
+      rethrow;
+    }
+  }
+
+  @override
   Future<AuthApiModel?> updateProfilePicture(File imageFile) async {
     try {
       final formData = FormData.fromMap({
