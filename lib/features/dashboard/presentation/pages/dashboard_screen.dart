@@ -1,7 +1,7 @@
 import 'package:event_planner/features/dashboard/presentation/pages/home_screen.dart';
+import 'package:event_planner/features/dashboard/presentation/pages/event_screen.dart';
 import 'package:event_planner/features/dashboard/presentation/pages/notification_screen.dart';
 import 'package:event_planner/features/dashboard/presentation/pages/profile_screen.dart';
-import 'package:event_planner/features/event/presentation/pages/event_discovery_screen.dart';
 import 'package:event_planner/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -17,7 +17,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   final List<Widget> lstBottomScreen = const [
     HomeScreen(),
-    EventDiscoveryScreen(),
+    EventScreen(),
     NotificationScreen(),
     ProfileScreen(),
   ];

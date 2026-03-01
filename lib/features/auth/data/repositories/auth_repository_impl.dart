@@ -166,6 +166,7 @@ class AuthRepositoryImpl implements IAuthRepository {
 
       // Build entity from session data
       final user = AuthEntity(
+        authId: userId,
         email: email,
         fullName: fullName,
         username: username ?? email.split('@')[0],
