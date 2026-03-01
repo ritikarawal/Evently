@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:event_planner/features/auth/presentation/state/auth_state.dart';
 import 'package:event_planner/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:event_planner/features/onboarding/presentation/pages/onboarding_screen.dart';
 import 'package:event_planner/features/dashboard/presentation/pages/dashboard_screen.dart';
@@ -17,12 +18,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _checkSessionAndNavigate();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkSessionAndNavigate();
+    });
   }
 
   Future<void> _checkSessionAndNavigate() async {
-    // Wait for auth state to be checked
-    await Future.delayed(const Duration(seconds: 2));
+    // Force session check after first frame before deciding route
+    await Future<void>.delayed(Duration.zero);
+    await ref.read(authViewModelProvider.notifier).getCurrentUser();
+    await Future.delayed(const Duration(milliseconds: 500));
 
     if (!mounted) return;
 
@@ -30,7 +35,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     final authState = ref.read(authViewModelProvider);
 
     // Navigate based on session status
-    if (authState.status.toString().contains('authenticated')) {
+    if (authState.status == AuthStatus.authenticated && authState.user != null) {
       // User is logged in, go to dashboard
       Navigator.pushReplacement(
         context,

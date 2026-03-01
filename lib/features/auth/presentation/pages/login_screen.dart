@@ -18,6 +18,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   bool showPassword = false;
+  bool _isSubmitting = false;
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -31,22 +32,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Listen to auth state changes
     final authState = ref.watch(authViewModelProvider);
     final authViewModel = ref.read(authViewModelProvider.notifier);
 
-    // Handle auth state changes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (authState.status == AuthStatus.authenticated) {
+    ref.listen<AuthState>(authViewModelProvider, (previous, next) {
+      if (!mounted) return;
+
+      if (next.status == AuthStatus.loading) return;
+      _isSubmitting = false;
+
+      if (previous?.status != AuthStatus.authenticated &&
+          next.status == AuthStatus.authenticated) {
         showMySnackBar(context: context, message: "Login Successful!");
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const DashboardScreen()),
         );
-      } else if (authState.status == AuthStatus.error) {
+      } else if (previous?.status != AuthStatus.error &&
+          next.status == AuthStatus.error) {
         showMySnackBar(
           context: context,
-          message: authState.errorMessage ?? 'Login failed',
+          message: next.errorMessage ?? 'Login failed',
           color: Colors.red,
         );
         authViewModel.clearError();
@@ -144,8 +150,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ? "Logging in..."
                             : "Log in",
                         onPressed: () {
-                          if (authState.status != AuthStatus.loading &&
-                              _formKey.currentState!.validate()) {
+                          if (_isSubmitting ||
+                              authState.status == AuthStatus.loading) {
+                            return;
+                          }
+                          if (_formKey.currentState!.validate()) {
+                            _isSubmitting = true;
                             authViewModel.login(
                               email: _emailController.text.trim(),
                               password: _passwordController.text.trim(),

@@ -6,8 +6,13 @@ class EventDetailsScreen extends StatelessWidget {
   final String category;
   final String date;
   final String time;
+  final String endDate;
   final String location;
   final int attendees;
+  final int capacity;
+  final String status;
+  final String organizerId;
+  final String eventId;
   final String description;
 
   const EventDetailsScreen({
@@ -16,8 +21,13 @@ class EventDetailsScreen extends StatelessWidget {
     required this.category,
     this.date = 'Date TBA',
     this.time = 'Time TBA',
+    this.endDate = 'End date TBA',
     this.location = 'Location not set',
     this.attendees = 0,
+    this.capacity = 0,
+    this.status = 'draft',
+    this.organizerId = '',
+    this.eventId = '',
     this.description = '',
   });
 
@@ -119,6 +129,12 @@ class EventDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   _InfoCard(
+                    icon: Icons.event,
+                    title: 'Ends On',
+                    value: endDate,
+                  ),
+                  const SizedBox(height: 12),
+                  _InfoCard(
                     icon: Icons.location_on,
                     title: 'Location',
                     value: location,
@@ -128,6 +144,26 @@ class EventDetailsScreen extends StatelessWidget {
                     icon: Icons.people,
                     title: 'Attendees',
                     value: '$attendees people attending',
+                  ),
+                  const SizedBox(height: 12),
+                  _InfoCard(
+                    icon: Icons.event_available,
+                    title: 'Capacity',
+                    value: capacity > 0
+                        ? '$attendees / $capacity'
+                        : '$attendees',
+                  ),
+                  const SizedBox(height: 12),
+                  _InfoCard(
+                    icon: Icons.info_outline,
+                    title: 'Status',
+                    value: status,
+                  ),
+                  const SizedBox(height: 12),
+                  _InfoCard(
+                    icon: Icons.fingerprint,
+                    title: 'Event ID',
+                    value: eventId.isEmpty ? 'Not available' : eventId,
                   ),
 
                   const SizedBox(height: 32),
@@ -195,7 +231,7 @@ class EventDetailsScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'John Organizer',
+                                'Event Organizer',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -204,7 +240,9 @@ class EventDetailsScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Event Organizer • 24 events',
+                                organizerId.isEmpty
+                                    ? 'Organizer details unavailable'
+                                    : 'Organizer ID: $organizerId',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: AppColors.textSecondary,

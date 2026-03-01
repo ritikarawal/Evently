@@ -34,14 +34,6 @@ class AuthViewModel extends Notifier<AuthState> {
       updateProfilePictureUsecaseProvider,
     );
 
-    // Check for existing session on build (only if not already authenticated)
-    Future.microtask(() {
-      final currentState = state;
-      if (currentState.status != AuthStatus.authenticated) {
-        getCurrentUser();
-      }
-    });
-
     return const AuthState();
   }
 
@@ -101,8 +93,13 @@ class AuthViewModel extends Notifier<AuthState> {
         status: AuthStatus.unauthenticated,
         errorMessage: failure.message,
       ),
-      (user) =>
-          state = state.copyWith(status: AuthStatus.authenticated, user: user),
+      (user) {
+        if (user == null) {
+          state = state.copyWith(status: AuthStatus.unauthenticated, user: null);
+          return;
+        }
+        state = state.copyWith(status: AuthStatus.authenticated, user: user);
+      },
     );
   }
 

@@ -5,28 +5,72 @@ import 'package:flutter/foundation.dart';
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const bool isPhysicalDevice = true;
+  // Optional full override:
+  // flutter run --dart-define=API_BASE_URL=http://10.1.6.169:5050/api/
+  static const String apiBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: '',
+  );
 
-  static const String compIpAddress = "192.168.18.79";
+  // Optional host override, useful for Android physical devices on LAN.
+  // flutter run --dart-define=API_HOST=10.1.6.169
+  static const String apiHost = String.fromEnvironment(
+    'API_HOST',
+    defaultValue: '',
+  );
+
+  // Set true when using `adb reverse tcp:5050 tcp:5050` on Android.
+  static const bool useAdbReverse = bool.fromEnvironment(
+    'USE_ADB_REVERSE',
+    defaultValue: true,
+  );
+
+  // Backend port.
+  static const String apiPort = '5050';
 
   static String get baseUrl {
-    if (isPhysicalDevice) {
-      return 'http://$compIpAddress:5050/api/';
+    if (apiBaseUrl.isNotEmpty) {
+      return normalizeApiBase(apiBaseUrl);
+    }
+
+    if (apiHost.isNotEmpty) {
+      return 'http://$apiHost:$apiPort/api/';
     }
 
     if (kIsWeb) {
-      return 'http://localhost:5050/api/';
-    } else if (Platform.isAndroid) {
-      return 'http://10.0.2.2:5050/api/';
-    } else if (Platform.isIOS) {
-      return 'http://localhost:5050/api/';
-    } else {
-      return 'http://localhost:5050/api/';
+      return 'http://localhost:$apiPort/api/';
     }
+
+    if (Platform.isAndroid) {
+      if (useAdbReverse) {
+        return 'http://127.0.0.1:$apiPort/api/';
+      }
+
+      if (apiHost.isNotEmpty) {
+        return 'http://$apiHost:$apiPort/api/';
+      }
+
+      return 'http://10.0.2.2:$apiPort/api/';
+    }
+
+    if (Platform.isIOS) {
+      return 'http://localhost:$apiPort/api/';
+    }
+
+    return 'http://localhost:$apiPort/api/';
   }
 
-  static const Duration connectionTimeout = Duration(seconds: 15);
-  static const Duration receiveTimeout = Duration(seconds: 15);
+  static List<String> get baseUrlCandidates => [baseUrl];
+
+  static const Duration connectionTimeout = Duration(seconds: 8);
+  static const Duration receiveTimeout = Duration(seconds: 20);
+
+  static String normalizeApiBase(String value) {
+    var v = value.trim();
+    if (!v.endsWith('/')) v = '$v/';
+    if (!v.endsWith('api/')) v = '${v}api/';
+    return v;
+  }
 
   // Get full URL for uploaded images
   static String getImageUrl(String? relativePath) {
@@ -37,19 +81,8 @@ class ApiEndpoints {
         ? relativePath.substring(1)
         : relativePath;
 
-    if (isPhysicalDevice) {
-      return 'http://$compIpAddress:5050/$cleanPath';
-    }
-
-    if (kIsWeb) {
-      return 'http://localhost:5050/$cleanPath';
-    } else if (Platform.isAndroid) {
-      return 'http://10.0.2.2:5050/$cleanPath';
-    } else if (Platform.isIOS) {
-      return 'http://localhost:5050/$cleanPath';
-    } else {
-      return 'http://localhost:5050/$cleanPath';
-    }
+    final root = baseUrl.replaceFirst('/api/', '/');
+    return '$root$cleanPath';
   }
 
   // -------------------------- AUTH -------------------------

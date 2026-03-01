@@ -369,225 +369,54 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       );
     }
 
-    return ListView.builder(
+    return GridView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: events.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 0.80,
+      ),
       itemBuilder: (context, index) {
         final event = events[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            color: AppColors.cardBackground,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.primary.withOpacity(0.2)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => EventDetailsScreen(
-                      eventTitle: event.title.isEmpty
-                          ? 'Untitled Event'
-                          : event.title,
-                      category: event.category.isEmpty
-                          ? 'General'
-                          : event.category,
-                      date: _formatEventDate(event.startDate),
-                      time: _formatEventTime(event.startDate),
-                      location: event.location.isEmpty
-                          ? 'Location not set'
-                          : event.location,
-                      attendees: event.attendeeIds.length,
-                      description: event.description,
-                    ),
-                  ),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      right: 8,
-                      top: 4,
-                      child: Icon(
-                        Icons.mail_outline,
-                        size: 18,
-                        color: AppColors.primary.withOpacity(0.35),
-                      ),
-                    ),
-                    Column(
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                _categoryIcon(event.category),
-                                color: AppColors.primary,
-                                size: 30,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    event.title.isEmpty
-                                        ? 'Untitled Event'
-                                        : event.title,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.calendar_today,
-                                        size: 14,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        _formatEventDate(event.startDate),
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          color: AppColors.textSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.location_on,
-                                        size: 14,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Expanded(
-                                        child: Text(
-                                          event.location.isEmpty
-                                              ? 'Location not set'
-                                              : event.location,
-                                          style: const TextStyle(
-                                            fontSize: 13,
-                                            color: AppColors.textSecondary,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          height: 1,
-                          color: AppColors.primary.withOpacity(0.2),
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.access_time,
-                              size: 14,
-                              color: AppColors.textSecondary,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              _formatEventTime(event.startDate),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                            const Spacer(),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.people,
-                                    size: 14,
-                                    color: AppColors.primary,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '${event.attendeeIds.length}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.primary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                event.category.isEmpty
-                                    ? 'General'
-                                    : event.category,
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
+        return _EnvelopeEventCard(
+          title: event.title.isEmpty ? 'Untitled Event' : event.title,
+          category: event.category.isEmpty ? 'General' : event.category,
+          date: _formatEventDate(event.startDate),
+          time: _formatEventTime(event.startDate),
+          location: event.location.isEmpty
+              ? 'Location not set'
+              : event.location,
+          attendees: event.attendeeIds.length,
+          description: event.description,
+          icon: _categoryIcon(event.category),
+          accentColor: _categoryColor(event.category),
+          onViewDetails: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => EventDetailsScreen(
+                  eventTitle: event.title.isEmpty
+                      ? 'Untitled Event'
+                      : event.title,
+                  category: event.category.isEmpty ? 'General' : event.category,
+                  date: _formatEventDate(event.startDate),
+                  time: _formatEventTime(event.startDate),
+                  endDate: _formatEventDate(event.endDate),
+                  location: event.location.isEmpty
+                      ? 'Location not set'
+                      : event.location,
+                  attendees: event.attendeeIds.length,
+                  capacity: event.capacity,
+                  status: event.status.isEmpty ? 'draft' : event.status,
+                  organizerId: event.organizerId,
+                  eventId: event.id,
+                  description: event.description,
                 ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -625,6 +454,369 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         return Icons.event;
     }
   }
+
+  Color _categoryColor(String category) {
+    switch (category.toLowerCase()) {
+      case 'birthday':
+        return Colors.pink.shade300;
+      case 'anniversary':
+      case 'engagement':
+        return Colors.red.shade300;
+      case 'wedding':
+        return Colors.blue.shade300;
+      case 'workshop':
+        return Colors.teal.shade300;
+      case 'conference':
+        return Colors.orange.shade300;
+      case 'graduation':
+        return Colors.deepPurple.shade300;
+      case 'fundraiser':
+      case 'fundraisers':
+        return Colors.green.shade300;
+      default:
+        return AppColors.primary.withOpacity(0.7);
+    }
+  }
+}
+
+class _EnvelopeEventCard extends StatefulWidget {
+  final String title;
+  final String category;
+  final String date;
+  final String time;
+  final String location;
+  final int attendees;
+  final String description;
+  final IconData icon;
+  final Color accentColor;
+  final VoidCallback onViewDetails;
+
+  const _EnvelopeEventCard({
+    required this.title,
+    required this.category,
+    required this.date,
+    required this.time,
+    required this.location,
+    required this.attendees,
+    required this.description,
+    required this.icon,
+    required this.accentColor,
+    required this.onViewDetails,
+  });
+
+  @override
+  State<_EnvelopeEventCard> createState() => _EnvelopeEventCardState();
+}
+
+class _EnvelopeEventCardState extends State<_EnvelopeEventCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _flapAnimation;
+  late final Animation<double> _detailsOpacity;
+  bool _isOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 420),
+    );
+    _flapAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOutCubic,
+    );
+    _detailsOpacity = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.35, 1, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _toggleEnvelope() {
+    setState(() => _isOpen = !_isOpen);
+    if (_isOpen) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _toggleEnvelope,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 420),
+        curve: Curves.easeInOutCubic,
+        height: 230,
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: widget.accentColor.withOpacity(0.35)),
+          boxShadow: [
+            BoxShadow(
+              color: widget.accentColor.withOpacity(0.18),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              top: 16,
+              left: 10,
+              right: 10,
+              child: FadeTransition(
+                opacity: _detailsOpacity,
+                child: Transform.translate(
+                  offset: Offset(0, (1 - _detailsOpacity.value) * 14),
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: widget.accentColor.withOpacity(0.2),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.calendar_today,
+                              size: 11,
+                              color: AppColors.textSecondary,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                widget.date,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.location_on,
+                              size: 11,
+                              color: AppColors.textSecondary,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                widget.location,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: widget.accentColor.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.people,
+                                    size: 11,
+                                    color: widget.accentColor,
+                                  ),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    '${widget.attendees}',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: widget.accentColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Spacer(),
+                            TextButton(
+                              onPressed: widget.onViewDetails,
+                              style: TextButton.styleFrom(
+                                foregroundColor: widget.accentColor,
+                                minimumSize: const Size(0, 28),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                ),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: const Text(
+                                'Open',
+                                style: TextStyle(fontSize: 11),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 12,
+              top: 62,
+              child: ClipPath(
+                clipper: _EnvelopePocketClipper(),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        widget.accentColor.withOpacity(0.25),
+                        widget.accentColor.withOpacity(0.12),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 38, 12, 10),
+                    child: Row(
+                      children: [
+                        Icon(widget.icon, size: 16, color: widget.accentColor),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            widget.category,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: widget.accentColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          _isOpen ? 'Tap to close' : 'Tap to open',
+                          style: const TextStyle(
+                            fontSize: 9,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 12,
+              left: 12,
+              right: 12,
+              child: AnimatedBuilder(
+                animation: _flapAnimation,
+                builder: (context, child) {
+                  final tilt = _flapAnimation.value * 3.05;
+                  return Transform(
+                    alignment: Alignment.topCenter,
+                    transform: Matrix4.identity()
+                      ..setEntry(3, 2, 0.002)
+                      ..rotateX(tilt),
+                    child: child,
+                  );
+                },
+                child: ClipPath(
+                  clipper: _EnvelopeFlapClipper(),
+                  child: Container(
+                    height: 78,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          widget.accentColor,
+                          widget.accentColor.withOpacity(0.85),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EnvelopeFlapClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width * 0.5, size.height)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+}
+
+class _EnvelopePocketClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..moveTo(0, size.height * 0.24)
+      ..lineTo(size.width * 0.5, 0)
+      ..lineTo(size.width, size.height * 0.24)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
 class _CategoryStory {

@@ -35,13 +35,9 @@ class EventRepositoryImpl implements EventRepository {
   @override
   Future<List<Event>> getUserEvents(String userId) async {
     if (userId.isEmpty) {
-      try {
-        final response = await _apiClient.get('events');
-        final List<dynamic> data = _extractEventList(response.data);
-        return data.map(_mapEventFromJson).toList();
-      } catch (e) {
-        throw Exception('Failed to fetch events: $e');
-      }
+      final response = await _apiClient.get('events');
+      final List<dynamic> data = _extractEventList(response.data);
+      return data.map(_mapEventFromJson).toList();
     }
 
     try {
@@ -49,6 +45,9 @@ class EventRepositoryImpl implements EventRepository {
       final List<dynamic> data = _extractEventList(response.data);
       return data.map(_mapEventFromJson).toList();
     } catch (e) {
+      if (_isNetworkError(e)) {
+        throw Exception('Failed to fetch events: $e');
+      }
       try {
         final response = await _apiClient.get('events');
         final List<dynamic> data = _extractEventList(response.data);
@@ -57,6 +56,13 @@ class EventRepositoryImpl implements EventRepository {
         throw Exception('Failed to fetch events: $fallbackError');
       }
     }
+  }
+
+  bool _isNetworkError(Object e) {
+    final msg = e.toString().toLowerCase();
+    return msg.contains('timeout') ||
+        msg.contains('no internet connection') ||
+        msg.contains('connection');
   }
 
   @override
