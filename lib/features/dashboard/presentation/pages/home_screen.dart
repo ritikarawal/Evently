@@ -10,12 +10,9 @@ import 'package:event_planner/features/event/presentation/pages/create_event_for
 import 'package:event_planner/features/event/presentation/state/event_viewmodel.dart';
 
 final dashboardEventsProvider = FutureProvider<List<Event>>((ref) async {
-  final authState = ref.watch(authViewModelProvider);
-  final organizerId = authState.user?.authId;
-
   final repository = ref.read(eventRepositoryProvider);
   return repository
-      .getUserEvents(organizerId ?? '')
+      .getUserEvents('')
       .timeout(
         const Duration(seconds: 20),
         onTimeout: () => throw Exception(
