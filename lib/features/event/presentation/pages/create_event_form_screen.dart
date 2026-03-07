@@ -6,14 +6,10 @@ import 'package:event_planner/features/event/presentation/state/event_viewmodel.
 import 'package:event_planner/features/auth/presentation/view_model/auth_viewmodel.dart';
 
 class CreateEventFormScreen extends ConsumerStatefulWidget {
-  final String category;
-  final String categoryKey;
+  final String? category;
+  final String? categoryKey;
 
-  const CreateEventFormScreen({
-    super.key,
-    required this.category,
-    required this.categoryKey,
-  });
+  const CreateEventFormScreen({super.key, this.category, this.categoryKey});
 
   @override
   ConsumerState<CreateEventFormScreen> createState() =>
@@ -27,6 +23,18 @@ class _CreateEventFormScreenState extends ConsumerState<CreateEventFormScreen> {
   late final TextEditingController _capacityController;
   late DateTime _startDate;
   late DateTime _endDate;
+  late String _selectedCategoryKey;
+
+  static const List<Map<String, String>> _eventCategories = [
+    {'label': 'Birthday', 'key': 'birthday'},
+    {'label': 'Anniversary', 'key': 'anniversary'},
+    {'label': 'Wedding', 'key': 'wedding'},
+    {'label': 'Engagement', 'key': 'engagement'},
+    {'label': 'Workshop', 'key': 'workshop'},
+    {'label': 'Conference', 'key': 'conference'},
+    {'label': 'Graduation', 'key': 'graduation'},
+    {'label': 'Fundraisers', 'key': 'fundraisers'},
+  ];
 
   @override
   void initState() {
@@ -37,6 +45,7 @@ class _CreateEventFormScreenState extends ConsumerState<CreateEventFormScreen> {
     _capacityController = TextEditingController(text: '100');
     _startDate = DateTime.now().add(const Duration(days: 7));
     _endDate = _startDate.add(const Duration(hours: 3));
+    _selectedCategoryKey = widget.categoryKey ?? _eventCategories.first['key']!;
   }
 
   @override
@@ -128,7 +137,7 @@ class _CreateEventFormScreenState extends ConsumerState<CreateEventFormScreen> {
     final event = Event(
       title: _titleController.text,
       description: _descriptionController.text,
-      category: widget.categoryKey,
+      category: _selectedCategoryKey,
       location: _locationController.text,
       startDate: _startDate,
       endDate: _endDate,
@@ -143,6 +152,13 @@ class _CreateEventFormScreenState extends ConsumerState<CreateEventFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedCategoryLabel =
+        _eventCategories.firstWhere(
+          (item) => item['key'] == _selectedCategoryKey,
+          orElse: () => _eventCategories.first,
+        )['label'] ??
+        'General';
+
     ref.listen(eventViewModelProvider, (previous, next) {
       if (next.isSuccess) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -190,7 +206,7 @@ class _CreateEventFormScreenState extends ConsumerState<CreateEventFormScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  widget.category,
+                  selectedCategoryLabel,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -199,6 +215,54 @@ class _CreateEventFormScreenState extends ConsumerState<CreateEventFormScreen> {
                 ),
               ),
               const SizedBox(height: 24),
+
+              const Text(
+                'Event Type',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                initialValue: _selectedCategoryKey,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: AppColors.cardBackground,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.primary),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+                items: _eventCategories
+                    .map(
+                      (category) => DropdownMenuItem<String>(
+                        value: category['key'],
+                        child: Text(category['label']!),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value == null) return;
+                  setState(() {
+                    _selectedCategoryKey = value;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
 
               // Title Field
               _buildFormField(

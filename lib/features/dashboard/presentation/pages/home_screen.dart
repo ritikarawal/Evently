@@ -5,7 +5,6 @@ import 'package:event_planner/features/auth/presentation/view_model/auth_viewmod
 import 'package:event_planner/features/event/domain/entities/event.dart';
 import 'package:event_planner/features/event/presentation/pages/event_details_screen.dart';
 import 'package:event_planner/theme/app_colors.dart';
-import 'package:event_planner/features/event/presentation/pages/quick_create_event_screen.dart';
 import 'package:event_planner/features/event/presentation/pages/create_event_form_screen.dart';
 import 'package:event_planner/features/event/data/repositories/event_repository_impl.dart';
 
@@ -306,7 +305,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const QuickCreateEventScreen()),
+            MaterialPageRoute(builder: (_) => const CreateEventFormScreen()),
           );
         },
         backgroundColor: AppColors.primary,
