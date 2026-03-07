@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:event_planner/features/auth/presentation/state/auth_state.dart';
+import 'package:event_planner/features/admin/presentation/pages/admin_dashboard_screen.dart';
 import 'package:event_planner/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:event_planner/features/onboarding/presentation/pages/onboarding_screen.dart';
 import 'package:event_planner/features/dashboard/presentation/pages/dashboard_screen.dart';
@@ -15,6 +16,8 @@ class SplashScreen extends ConsumerStatefulWidget {
 }
 
 class _SplashScreenState extends ConsumerState<SplashScreen> {
+  static const String _adminEmail = 'ri@gmail.com';
+
   @override
   void initState() {
     super.initState();
@@ -35,11 +38,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     final authState = ref.read(authViewModelProvider);
 
     // Navigate based on session status
-    if (authState.status == AuthStatus.authenticated && authState.user != null) {
-      // User is logged in, go to dashboard
+    if (authState.status == AuthStatus.authenticated &&
+        authState.user != null) {
+      final isAdmin = authState.user?.email.trim().toLowerCase() == _adminEmail;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const DashboardScreen()),
+        MaterialPageRoute(
+          builder: (context) =>
+              isAdmin ? const AdminDashboardScreen() : const DashboardScreen(),
+        ),
       );
     } else {
       // User is not logged in, go to onboarding

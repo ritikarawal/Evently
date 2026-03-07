@@ -88,6 +88,20 @@ class ApiEndpoints {
   // ----------------------- CHAT ------------------------
   static const String chatHistory = 'chat/history';
   static const String chatSendUser = 'chat/user/send';
+  static const String adminChatUsers = 'chat/admin/users';
+  static String adminChatUser(String userId) => 'chat/admin/user/$userId';
+  static String adminChatSend(String userId) => 'chat/admin/user/$userId/send';
+
+  // ----------------------- ADMIN -----------------------
+  static const String adminUsers = 'admin/users';
+  static String adminUserById(String userId) => 'admin/users/$userId';
+
+  static const String adminEvents = 'admin/events';
+  static String adminApproveEvent(String eventId) =>
+      'admin/events/$eventId/approve';
+  static String adminDeclineEvent(String eventId) =>
+      'admin/events/$eventId/decline';
+  static String adminEventById(String eventId) => 'admin/events/$eventId';
 
   // --------------------- PAYMENTS ----------------------
   static const String khaltiVerify = 'payments/khalti-verify';

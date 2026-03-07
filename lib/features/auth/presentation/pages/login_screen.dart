@@ -1,5 +1,6 @@
 import 'package:event_planner/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:event_planner/features/auth/presentation/state/auth_state.dart';
+import 'package:event_planner/features/admin/presentation/pages/admin_dashboard_screen.dart';
 import 'package:event_planner/widget/common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,6 +17,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
+  static const String _adminEmail = 'ri@gmail.com';
+
   final _formKey = GlobalKey<FormState>();
   bool showPassword = false;
   bool _isSubmitting = false;
@@ -44,9 +47,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (previous?.status != AuthStatus.authenticated &&
           next.status == AuthStatus.authenticated) {
         showMySnackBar(context: context, message: "Login Successful!");
+        final isAdmin = next.user?.email.trim().toLowerCase() == _adminEmail;
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const DashboardScreen()),
+          MaterialPageRoute(
+            builder: (_) => isAdmin
+                ? const AdminDashboardScreen()
+                : const DashboardScreen(),
+          ),
         );
       } else if (previous?.status != AuthStatus.error &&
           next.status == AuthStatus.error) {
