@@ -126,7 +126,7 @@ class _EventScreenState extends ConsumerState<EventScreen>
           final event = events[index];
           return _EnvelopeEventCard(
             title: event.title.isEmpty ? 'Untitled Event' : event.title,
-            category: event.category.isEmpty ? 'General' : event.category,
+            category: _displayCategory(event.category),
             date: _formatEventDate(event.startDate),
             time: _formatEventTime(event.startDate),
             location: event.location.isEmpty
@@ -137,28 +137,22 @@ class _EventScreenState extends ConsumerState<EventScreen>
             icon: _categoryIcon(event.category),
             accentColor: _categoryColor(event.category),
             onViewDetails: () {
+              if (event.id.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'This event is missing an ID. Please refresh and try again.',
+                    ),
+                  ),
+                );
+                return;
+              }
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => EventDetailsScreen(
-                    eventTitle: event.title.isEmpty
-                        ? 'Untitled Event'
-                        : event.title,
-                    category: event.category.isEmpty
-                        ? 'General'
-                        : event.category,
-                    date: _formatEventDate(event.startDate),
-                    time: _formatEventTime(event.startDate),
-                    endDate: _formatEventDate(event.endDate),
-                    location: event.location.isEmpty
-                        ? 'Location not set'
-                        : event.location,
-                    attendees: event.attendeeIds.length,
-                    capacity: event.capacity,
-                    status: event.status.isEmpty ? 'draft' : event.status,
-                    organizerId: event.organizerId,
                     eventId: event.id,
-                    description: event.description,
+                    initialEvent: event,
                   ),
                 ),
               );
@@ -179,6 +173,13 @@ class _EventScreenState extends ConsumerState<EventScreen>
     return DateFormat('h:mm a').format(dateTime);
   }
 
+  String _displayCategory(String category) {
+    final normalized = category.trim().toLowerCase();
+    if (normalized.isEmpty) return 'General';
+    if (normalized == 'other') return 'Graduation';
+    return category;
+  }
+
   IconData _categoryIcon(String category) {
     switch (category.toLowerCase()) {
       case 'birthday':
@@ -193,6 +194,7 @@ class _EventScreenState extends ConsumerState<EventScreen>
       case 'conference':
         return Icons.groups;
       case 'graduation':
+      case 'other':
         return Icons.school;
       case 'fundraiser':
       case 'fundraisers':
@@ -216,6 +218,7 @@ class _EventScreenState extends ConsumerState<EventScreen>
       case 'conference':
         return Colors.orange.shade300;
       case 'graduation':
+      case 'other':
         return Colors.deepPurple.shade300;
       case 'fundraiser':
       case 'fundraisers':
@@ -294,10 +297,19 @@ class _EnvelopeEventCardState extends State<_EnvelopeEventCard>
     }
   }
 
+  void _handleCardTap() {
+    if (_isOpen) {
+      widget.onViewDetails();
+      return;
+    }
+    _toggleEnvelope();
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _toggleEnvelope,
+      onTap: _handleCardTap,
+      onLongPress: _isOpen ? _toggleEnvelope : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 420),
         curve: Curves.easeInOutCubic,
@@ -482,7 +494,9 @@ class _EnvelopeEventCardState extends State<_EnvelopeEventCard>
                           ),
                         ),
                         Text(
-                          _isOpen ? 'Tap to close' : 'Tap to open',
+                          _isOpen
+                              ? 'Tap to view • hold to close'
+                              : 'Tap to open',
                           style: const TextStyle(
                             fontSize: 9,
                             color: AppColors.textSecondary,

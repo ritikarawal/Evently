@@ -7,6 +7,7 @@ abstract class IVenueRemoteDataSource {
     String? city,
     String? state,
     String? search,
+    String? recommendedCategory,
   });
 
   Future<List<VenueApiModel>> getUserVenues();
@@ -23,6 +24,7 @@ class VenueRemoteDataSource implements IVenueRemoteDataSource {
     String? city,
     String? state,
     String? search,
+    String? recommendedCategory,
   }) async {
     final response = await _dio.get(
       ApiEndpoints.venues,
@@ -30,6 +32,8 @@ class VenueRemoteDataSource implements IVenueRemoteDataSource {
         if (city != null && city.isNotEmpty) 'city': city,
         if (state != null && state.isNotEmpty) 'state': state,
         if (search != null && search.isNotEmpty) 'search': search,
+        if (recommendedCategory != null && recommendedCategory.isNotEmpty)
+          'recommendedCategory': recommendedCategory,
       },
     );
 

@@ -4,6 +4,21 @@ import 'package:event_planner/theme/app_colors.dart';
 import 'package:event_planner/features/event/domain/entities/event.dart';
 import 'package:event_planner/features/event/presentation/state/event_viewmodel.dart';
 import 'package:event_planner/features/auth/presentation/view_model/auth_viewmodel.dart';
+import 'package:event_planner/features/venues/domain/entities/venue_entity.dart';
+import 'package:event_planner/features/venues/domain/usecases/get_venues_usecase.dart';
+
+final recommendedVenuesProvider = FutureProvider.autoDispose
+    .family<List<VenueEntity>, String>((ref, categoryKey) async {
+      final usecase = ref.read(getVenuesUsecaseProvider);
+      final result = await usecase(
+        GetVenuesParams(recommendedCategory: categoryKey),
+      );
+
+      return result.fold(
+        (failure) => throw Exception(failure.message),
+        (venues) => venues.where((venue) => venue.isActive).toList(),
+      );
+    });
 
 class CreateEventFormScreen extends ConsumerStatefulWidget {
   final String? category;
@@ -21,9 +36,16 @@ class _CreateEventFormScreenState extends ConsumerState<CreateEventFormScreen> {
   late final TextEditingController _descriptionController;
   late final TextEditingController _locationController;
   late final TextEditingController _capacityController;
+  late final TextEditingController _ticketPriceController;
+  late final TextEditingController _desiredVenueController;
   late DateTime _startDate;
   late DateTime _endDate;
   late String _selectedCategoryKey;
+  String? _selectedVenueId;
+  String _eventType = 'free';
+  bool _isPublic = true;
+
+  static const String _othersVenueValue = '__others__';
 
   static const List<Map<String, String>> _eventCategories = [
     {'label': 'Birthday', 'key': 'birthday'},
@@ -43,9 +65,21 @@ class _CreateEventFormScreenState extends ConsumerState<CreateEventFormScreen> {
     _descriptionController = TextEditingController();
     _locationController = TextEditingController();
     _capacityController = TextEditingController(text: '100');
+    _ticketPriceController = TextEditingController();
+    _desiredVenueController = TextEditingController();
     _startDate = DateTime.now().add(const Duration(days: 7));
     _endDate = _startDate.add(const Duration(hours: 3));
-    _selectedCategoryKey = widget.categoryKey ?? _eventCategories.first['key']!;
+
+    final requestedCategory = (widget.categoryKey ?? '').trim().toLowerCase();
+    final normalizedCategory = requestedCategory == 'other'
+        ? 'graduation'
+        : requestedCategory;
+    final isAllowed = _eventCategories.any(
+      (item) => item['key'] == normalizedCategory,
+    );
+    _selectedCategoryKey = isAllowed
+        ? normalizedCategory
+        : _eventCategories.first['key']!;
   }
 
   @override
@@ -54,6 +88,8 @@ class _CreateEventFormScreenState extends ConsumerState<CreateEventFormScreen> {
     _descriptionController.dispose();
     _locationController.dispose();
     _capacityController.dispose();
+    _ticketPriceController.dispose();
+    _desiredVenueController.dispose();
     super.dispose();
   }
 
@@ -124,9 +160,46 @@ class _CreateEventFormScreenState extends ConsumerState<CreateEventFormScreen> {
       return;
     }
 
-    if (_locationController.text.isEmpty) {
+    if (_selectedVenueId == _othersVenueValue) {
+      final desiredVenue = _desiredVenueController.text.trim();
+      if (desiredVenue.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter your desired venue')),
+        );
+        return;
+      }
+
+      if (_locationController.text.trim().isEmpty) {
+        _locationController.text = desiredVenue;
+      }
+    }
+
+    if (_locationController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter event location')),
+        const SnackBar(
+          content: Text(
+            'Please choose a recommended venue or select Others and enter your desired venue',
+          ),
+        ),
+      );
+      return;
+    }
+
+    final capacity = int.tryParse(_capacityController.text);
+    if (capacity == null || capacity <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter valid capacity')),
+      );
+      return;
+    }
+
+    final ticketPrice =
+        double.tryParse(_ticketPriceController.text.trim()) ?? 0;
+    if (_eventType == 'paid' && ticketPrice <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter paid amount per person in rupees'),
+        ),
       );
       return;
     }
@@ -141,9 +214,12 @@ class _CreateEventFormScreenState extends ConsumerState<CreateEventFormScreen> {
       location: _locationController.text,
       startDate: _startDate,
       endDate: _endDate,
-      capacity: int.tryParse(_capacityController.text) ?? 100,
+      capacity: capacity,
       organizerId: organizerId,
       status: 'draft',
+      eventType: _eventType,
+      ticketPrice: _eventType == 'paid' ? ticketPrice : 0,
+      isPublic: _isPublic,
     );
 
     // Create the event using notifier
@@ -152,6 +228,9 @@ class _CreateEventFormScreenState extends ConsumerState<CreateEventFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final venuesAsync = ref.watch(
+      recommendedVenuesProvider(_selectedCategoryKey),
+    );
     final selectedCategoryLabel =
         _eventCategories.firstWhere(
           (item) => item['key'] == _selectedCategoryKey,
@@ -217,7 +296,7 @@ class _CreateEventFormScreenState extends ConsumerState<CreateEventFormScreen> {
               const SizedBox(height: 24),
 
               const Text(
-                'Event Type',
+                'Event Category',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -259,8 +338,225 @@ class _CreateEventFormScreenState extends ConsumerState<CreateEventFormScreen> {
                   if (value == null) return;
                   setState(() {
                     _selectedCategoryKey = value;
+                    _selectedVenueId = null;
+                    _desiredVenueController.clear();
                   });
                 },
+              ),
+              const SizedBox(height: 16),
+
+              const Text(
+                'Recommended Venue',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              venuesAsync.when(
+                data: (venues) {
+                  final venueItems = [
+                    ...venues,
+                    const VenueEntity(id: _othersVenueValue, name: 'Others'),
+                  ];
+
+                  final selectedValue =
+                      venueItems.any((venue) => venue.id == _selectedVenueId)
+                      ? _selectedVenueId
+                      : null;
+
+                  return DropdownButtonFormField<String>(
+                    value: selectedValue,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: AppColors.cardBackground,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey.shade200),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey.shade200),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: AppColors.primary),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    hint: const Text('Choose recommended venue'),
+                    items: venueItems
+                        .map(
+                          (venue) => DropdownMenuItem<String>(
+                            value: venue.id,
+                            child: Text(
+                              venue.id == _othersVenueValue
+                                  ? 'Others'
+                                  : '${venue.name} • ${venue.city}',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedVenueId = value;
+                      });
+
+                      if (value == null) return;
+                      if (value == _othersVenueValue) {
+                        _locationController.clear();
+                        return;
+                      }
+
+                      final selected = venues.firstWhere(
+                        (venue) => venue.id == value,
+                      );
+                      _desiredVenueController.clear();
+                      _locationController.text =
+                          '${selected.name}, ${selected.address}, ${selected.city}';
+                    },
+                  );
+                },
+                loading: () => Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBackground,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: const Row(
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      SizedBox(width: 10),
+                      Text(
+                        'Loading recommended venues...',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                error: (error, _) => Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBackground,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Text(
+                    'Could not load venues. You can still type location manually.',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ),
+              if (_selectedVenueId == _othersVenueValue) ...[
+                const SizedBox(height: 12),
+                _buildFormField(
+                  label: 'Your Desired Venue',
+                  controller: _desiredVenueController,
+                  hint: 'Enter your preferred venue name',
+                ),
+              ],
+              const SizedBox(height: 16),
+
+              const Text(
+                'Pricing',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment<String>(
+                    value: 'free',
+                    label: Text('Free'),
+                    icon: Icon(Icons.money_off),
+                  ),
+                  ButtonSegment<String>(
+                    value: 'paid',
+                    label: Text('Paid'),
+                    icon: Icon(Icons.payments),
+                  ),
+                ],
+                selected: {_eventType},
+                onSelectionChanged: (selection) {
+                  final selected = selection.first;
+                  setState(() {
+                    _eventType = selected;
+                    if (_eventType == 'free') {
+                      _ticketPriceController.clear();
+                    }
+                  });
+                },
+              ),
+              if (_eventType == 'paid') ...[
+                const SizedBox(height: 12),
+                _buildFormField(
+                  label: 'Price Per Person (NPR)',
+                  controller: _ticketPriceController,
+                  hint: 'Enter amount in rupees',
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+              const SizedBox(height: 16),
+
+              const Text(
+                'Visibility',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              SegmentedButton<bool>(
+                segments: const [
+                  ButtonSegment<bool>(
+                    value: true,
+                    label: Text('Public'),
+                    icon: Icon(Icons.public),
+                  ),
+                  ButtonSegment<bool>(
+                    value: false,
+                    label: Text('Private'),
+                    icon: Icon(Icons.lock),
+                  ),
+                ],
+                selected: {_isPublic},
+                onSelectionChanged: (selection) {
+                  setState(() {
+                    _isPublic = selection.first;
+                  });
+                },
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _isPublic
+                    ? 'Public events are visible to other users.'
+                    : 'Private events are visible only to you/attendees you invite.',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -278,14 +574,6 @@ class _CreateEventFormScreenState extends ConsumerState<CreateEventFormScreen> {
                 controller: _descriptionController,
                 hint: 'Describe your event',
                 maxLines: 4,
-              ),
-              const SizedBox(height: 16),
-
-              // Location Field
-              _buildFormField(
-                label: 'Location',
-                controller: _locationController,
-                hint: 'Enter event location',
               ),
               const SizedBox(height: 16),
 

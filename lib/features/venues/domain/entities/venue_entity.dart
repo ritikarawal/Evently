@@ -9,6 +9,7 @@ class VenueEntity extends Equatable {
   final int? capacity;
   final bool isActive;
   final String creatorId;
+  final String? recommendedCategory;
 
   const VenueEntity({
     this.id = '',
@@ -19,6 +20,7 @@ class VenueEntity extends Equatable {
     this.capacity,
     this.isActive = true,
     this.creatorId = '',
+    this.recommendedCategory,
   });
 
   @override
@@ -31,5 +33,6 @@ class VenueEntity extends Equatable {
     capacity,
     isActive,
     creatorId,
+    recommendedCategory,
   ];
 }

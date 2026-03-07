@@ -11,6 +11,9 @@ class Event {
   final String organizerId;
   final String status;
   final String? imageUrl;
+  final String eventType;
+  final double ticketPrice;
+  final bool isPublic;
 
   Event({
     this.id = '',
@@ -25,5 +28,8 @@ class Event {
     this.organizerId = '',
     this.status = 'draft',
     this.imageUrl,
+    this.eventType = 'free',
+    this.ticketPrice = 0,
+    this.isPublic = true,
   });
 }

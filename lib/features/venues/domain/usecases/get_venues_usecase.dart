@@ -9,8 +9,14 @@ class GetVenuesParams {
   final String? city;
   final String? state;
   final String? search;
+  final String? recommendedCategory;
 
-  const GetVenuesParams({this.city, this.state, this.search});
+  const GetVenuesParams({
+    this.city,
+    this.state,
+    this.search,
+    this.recommendedCategory,
+  });
 }
 
 class GetVenuesUsecase {
@@ -23,6 +29,7 @@ class GetVenuesUsecase {
       city: params.city,
       state: params.state,
       search: params.search,
+      recommendedCategory: params.recommendedCategory,
     );
   }
 }

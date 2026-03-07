@@ -9,6 +9,7 @@ class VenueApiModel {
   final int? capacity;
   final bool? isActive;
   final String? creatorId;
+  final String? recommendedCategory;
 
   VenueApiModel({
     this.id,
@@ -19,6 +20,7 @@ class VenueApiModel {
     this.capacity,
     this.isActive,
     this.creatorId,
+    this.recommendedCategory,
   });
 
   factory VenueApiModel.fromJson(Map<String, dynamic> json) {
@@ -40,6 +42,7 @@ class VenueApiModel {
           : int.tryParse('${json['capacity'] ?? ''}'),
       isActive: json['isActive'] as bool?,
       creatorId: creatorId,
+      recommendedCategory: json['recommendedCategory']?.toString(),
     );
   }
 
@@ -50,6 +53,8 @@ class VenueApiModel {
       if (city != null) 'city': city,
       if (state != null) 'state': state,
       if (capacity != null) 'capacity': capacity,
+      if (recommendedCategory != null)
+        'recommendedCategory': recommendedCategory,
     };
   }
 
@@ -63,6 +68,7 @@ class VenueApiModel {
       capacity: capacity,
       isActive: isActive ?? true,
       creatorId: creatorId ?? '',
+      recommendedCategory: recommendedCategory,
     );
   }
 
@@ -76,6 +82,7 @@ class VenueApiModel {
       capacity: entity.capacity,
       isActive: entity.isActive,
       creatorId: entity.creatorId,
+      recommendedCategory: entity.recommendedCategory,
     );
   }
 }

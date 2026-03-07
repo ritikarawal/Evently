@@ -2,7 +2,6 @@ import 'package:event_planner/core/api/api_client.dart';
 import 'package:event_planner/features/event/domain/entities/event.dart';
 import 'package:event_planner/features/event/domain/repositories/event_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/event_dto.dart';
 
 final eventRepositoryProvider = Provider<EventRepository>((ref) {
   final apiClient = ref.read(apiClientProvider);
@@ -25,25 +24,33 @@ class EventRepositoryImpl implements EventRepository {
         'startDate': event.startDate?.toIso8601String(),
         'endDate': event.endDate?.toIso8601String(),
         'capacity': event.capacity,
+        'eventType': event.eventType,
+        'ticketPrice': event.ticketPrice,
+        'isPublic': event.isPublic,
       };
 
       final response = await _apiClient.post('events', data: eventData);
-
-      final EventDto eventDto = EventDto.fromJson(
-        response.data['data'] ?? response.data,
-      );
-      return _dtoToEntity(eventDto);
+      return _mapEventFromJson(response.data['data'] ?? response.data);
     } catch (e) {
       throw Exception('Failed to create event: $e');
     }
   }
 
   @override
-  Future<List<Event>> getUserEvents(String userId) async {
-    if (userId.isEmpty) {
-      final response = await _apiClient.get('events');
+  Future<List<Event>> getAllEvents({Map<String, dynamic>? filters}) async {
+    try {
+      final response = await _apiClient.get('events', queryParameters: filters);
       final List<dynamic> data = _extractEventList(response.data);
       return data.map(_mapEventFromJson).toList();
+    } catch (e) {
+      throw Exception('Failed to fetch events: $e');
+    }
+  }
+
+  @override
+  Future<List<Event>> getUserEvents(String userId) async {
+    if (userId.isEmpty) {
+      return getAllEvents();
     }
 
     try {
@@ -55,9 +62,7 @@ class EventRepositoryImpl implements EventRepository {
         throw Exception('Failed to fetch events: $e');
       }
       try {
-        final response = await _apiClient.get('events');
-        final List<dynamic> data = _extractEventList(response.data);
-        return data.map(_mapEventFromJson).toList();
+        return getAllEvents();
       } catch (fallbackError) {
         throw Exception('Failed to fetch events: $fallbackError');
       }
@@ -75,12 +80,29 @@ class EventRepositoryImpl implements EventRepository {
   Future<Event> getEventById(String eventId) async {
     try {
       final response = await _apiClient.get('events/$eventId');
-      final EventDto eventDto = EventDto.fromJson(
-        response.data['data'] ?? response.data,
-      );
-      return _dtoToEntity(eventDto);
+      return _mapEventFromJson(response.data['data'] ?? response.data);
     } catch (e) {
       throw Exception('Failed to fetch event: $e');
+    }
+  }
+
+  @override
+  Future<Event> joinEvent(String eventId) async {
+    try {
+      final response = await _apiClient.post('events/$eventId/join');
+      return _mapEventFromJson(response.data['data'] ?? response.data);
+    } catch (e) {
+      throw Exception('Failed to join event: $e');
+    }
+  }
+
+  @override
+  Future<Event> leaveEvent(String eventId) async {
+    try {
+      final response = await _apiClient.post('events/$eventId/leave');
+      return _mapEventFromJson(response.data['data'] ?? response.data);
+    } catch (e) {
+      throw Exception('Failed to leave event: $e');
     }
   }
 
@@ -112,23 +134,6 @@ class EventRepositoryImpl implements EventRepository {
     }
   }
 
-  Event _dtoToEntity(EventDto dto) {
-    return Event(
-      id: dto.id ?? '',
-      title: dto.title ?? '',
-      description: dto.description ?? '',
-      category: dto.category ?? '',
-      location: dto.location ?? '',
-      startDate: dto.startDate,
-      endDate: dto.endDate,
-      capacity: dto.capacity ?? 0,
-      attendeeIds: dto.attendeeIds ?? [],
-      organizerId: dto.organizerId ?? '',
-      status: dto.status ?? 'draft',
-      imageUrl: null,
-    );
-  }
-
   Event _mapEventFromJson(dynamic raw) {
     final json = raw is Map<String, dynamic>
         ? raw
@@ -156,6 +161,7 @@ class EventRepositoryImpl implements EventRepository {
 
     final imageUrl = (json['eventImage'] ?? json['imageUrl'] ?? json['image'])
         ?.toString();
+    final eventType = (json['eventType'] ?? 'free').toString().toLowerCase();
 
     return Event(
       id: (json['_id'] ?? json['id'] ?? '').toString(),
@@ -170,6 +176,9 @@ class EventRepositoryImpl implements EventRepository {
       organizerId: organizerId,
       status: (json['status'] ?? 'draft').toString(),
       imageUrl: imageUrl,
+      eventType: eventType,
+      ticketPrice: _parseDouble(json['ticketPrice']),
+      isPublic: _parseBool(json['isPublic'], fallback: true),
     );
   }
 
@@ -187,6 +196,20 @@ class EventRepositoryImpl implements EventRepository {
     if (value is num) return value.toInt();
     if (value is String) return int.tryParse(value) ?? 0;
     return 0;
+  }
+
+  double _parseDouble(dynamic value) {
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  bool _parseBool(dynamic value, {required bool fallback}) {
+    if (value is bool) return value;
+    if (value is String) return value.toLowerCase() == 'true';
+    return fallback;
   }
 
   List<dynamic> _extractEventList(dynamic responseData) {

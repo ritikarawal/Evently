@@ -56,12 +56,14 @@ class VenueRepositoryImpl implements VenueRepository {
     String? city,
     String? state,
     String? search,
+    String? recommendedCategory,
   }) async {
     try {
       final result = await _remote.getVenues(
         city: city,
         state: state,
         search: search,
+        recommendedCategory: recommendedCategory,
       );
       return Right(result.map((e) => e.toEntity()).toList());
     } on DioException catch (e) {

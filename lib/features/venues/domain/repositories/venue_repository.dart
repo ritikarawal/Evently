@@ -7,6 +7,7 @@ abstract class VenueRepository {
     String? city,
     String? state,
     String? search,
+    String? recommendedCategory,
   });
 
   Future<Either<Failure, List<VenueEntity>>> getUserVenues();
