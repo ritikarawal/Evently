@@ -111,7 +111,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       icon: Icon(
         icon,
         size: 28,
-        color: isSelected ? AppColors.primary : Colors.grey.shade500,
+        color: isSelected
+            ? const Color.fromARGB(255, 255, 255, 255)
+            : Colors.grey.shade500,
       ),
     );
   }
