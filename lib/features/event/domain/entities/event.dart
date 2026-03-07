@@ -10,6 +10,7 @@ class Event {
   final List<String> attendeeIds;
   final String organizerId;
   final String status;
+  final String? imageUrl;
 
   Event({
     this.id = '',
@@ -23,5 +24,6 @@ class Event {
     this.attendeeIds = const [],
     this.organizerId = '',
     this.status = 'draft',
+    this.imageUrl,
   });
 }

@@ -29,10 +29,17 @@ final dioProvider = Provider<Dio>((ref) {
           options.headers['Authorization'] = 'Bearer $token';
         } else {
           final path = options.path.toLowerCase();
-          final isPublicAuthCall =
-              path.contains('auth/login') || path.contains('auth/register');
-          if (!isPublicAuthCall) {
-            debugPrint('No token found for request: ${options.path}');
+          final isPublicCall =
+              path.contains('auth/login') ||
+              path.contains('auth/register') ||
+              path == 'events' ||
+              path == 'events/' ||
+              path.startsWith('events?') ||
+              path == 'venues' ||
+              path == 'venues/' ||
+              path.startsWith('venues?');
+          if (!isPublicCall) {
+            debugPrint('No token found for protected request: ${options.path}');
           }
         }
         handler.next(options);

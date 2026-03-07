@@ -1,15 +1,7 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:event_planner/core/api/api_client.dart';
 import 'package:event_planner/features/event/domain/entities/event.dart';
 import 'package:event_planner/features/event/domain/repositories/event_repository.dart';
 import 'package:event_planner/features/event/data/repositories/event_repository_impl.dart';
 import 'package:flutter_riverpod/legacy.dart';
-
-// Event repository provider
-final eventRepositoryProvider = Provider<EventRepository>((ref) {
-  final apiClient = ref.read(apiClientProvider);
-  return EventRepositoryImpl(apiClient);
-});
 
 // Event creation state
 class EventState {

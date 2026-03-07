@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:event_planner/theme/app_colors.dart';
 import 'package:event_planner/features/event/domain/entities/event.dart';
 import 'package:event_planner/features/auth/presentation/view_model/auth_viewmodel.dart';
-import 'package:event_planner/features/event/presentation/state/event_viewmodel.dart';
+import 'package:event_planner/features/event/data/repositories/event_repository_impl.dart';
 import 'package:event_planner/features/event/presentation/pages/event_details_screen.dart';
 
 class _EventsTabData {
@@ -17,25 +17,33 @@ class _EventsTabData {
 final eventScreenDataProvider = FutureProvider<_EventsTabData>((ref) async {
   final authState = ref.watch(authViewModelProvider);
   final userId = authState.user?.authId ?? '';
-
-  if (userId.isEmpty) {
-    return const _EventsTabData(myEvents: [], bookedEvents: []);
-  }
-
   final repository = ref.read(eventRepositoryProvider);
 
-  final allEvents = await repository.getUserEvents(userId);
+  // Always keep a public list as fallback so cards can still be shown.
+  final publicEvents = await repository.getUserEvents('');
 
-  final myEvents = allEvents
+  if (userId.isEmpty) {
+    return _EventsTabData(myEvents: const [], bookedEvents: publicEvents);
+  }
+
+  final userScopeEvents = await repository.getUserEvents(userId);
+
+  final myEvents = userScopeEvents
       .where((event) => event.organizerId == userId)
       .toList();
 
-  final bookedEvents = allEvents
+  final bookedEvents = userScopeEvents
       .where(
         (event) =>
             event.attendeeIds.contains(userId) && event.organizerId != userId,
       )
       .toList();
+
+  // If backend returns no user-scope events, keep the UI populated with
+  // public cards instead of showing an empty screen.
+  if (myEvents.isEmpty && bookedEvents.isEmpty) {
+    return _EventsTabData(myEvents: publicEvents, bookedEvents: publicEvents);
+  }
 
   return _EventsTabData(myEvents: myEvents, bookedEvents: bookedEvents);
 });

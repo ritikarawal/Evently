@@ -1,7 +1,13 @@
 import 'package:event_planner/core/api/api_client.dart';
 import 'package:event_planner/features/event/domain/entities/event.dart';
 import 'package:event_planner/features/event/domain/repositories/event_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/event_dto.dart';
+
+final eventRepositoryProvider = Provider<EventRepository>((ref) {
+  final apiClient = ref.read(apiClientProvider);
+  return EventRepositoryImpl(apiClient);
+});
 
 class EventRepositoryImpl implements EventRepository {
   final ApiClient _apiClient;
@@ -119,6 +125,7 @@ class EventRepositoryImpl implements EventRepository {
       attendeeIds: dto.attendeeIds ?? [],
       organizerId: dto.organizerId ?? '',
       status: dto.status ?? 'draft',
+      imageUrl: null,
     );
   }
 
@@ -147,6 +154,9 @@ class EventRepositoryImpl implements EventRepository {
         ? organizerRaw['_id'].toString()
         : (json['organizerId']?.toString() ?? '');
 
+    final imageUrl = (json['eventImage'] ?? json['imageUrl'] ?? json['image'])
+        ?.toString();
+
     return Event(
       id: (json['_id'] ?? json['id'] ?? '').toString(),
       title: (json['title'] ?? '').toString(),
@@ -159,6 +169,7 @@ class EventRepositoryImpl implements EventRepository {
       attendeeIds: attendeeIds,
       organizerId: organizerId,
       status: (json['status'] ?? 'draft').toString(),
+      imageUrl: imageUrl,
     );
   }
 

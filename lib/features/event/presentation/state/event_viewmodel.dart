@@ -1,14 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:event_planner/core/api/api_client.dart';
 import 'package:event_planner/features/event/domain/entities/event.dart';
-import 'package:event_planner/features/event/domain/repositories/event_repository.dart';
-import 'package:event_planner/features/event/data/repositories/event_repository_impl.dart';
-
-// Event repository provider
-final eventRepositoryProvider = Provider<EventRepository>((ref) {
-  final apiClient = ref.read(apiClientProvider);
-  return EventRepositoryImpl(apiClient);
-});
+import 'package:event_planner/features/event/domain/usecases/create_event_usecase.dart';
 
 // Event creation state
 class EventCreationState {
@@ -32,8 +24,8 @@ class EventNotifier extends Notifier<EventCreationState> {
   Future<void> createEvent(Event event) async {
     state = EventCreationState(isLoading: true);
     try {
-      final repository = ref.read(eventRepositoryProvider);
-      final createdEvent = await repository.createEvent(event);
+      final createEventUsecase = ref.read(createEventUsecaseProvider);
+      final createdEvent = await createEventUsecase(event);
       state = EventCreationState(createdEvent: createdEvent);
     } catch (e) {
       state = EventCreationState(error: e.toString());

@@ -7,18 +7,36 @@ import 'package:event_planner/features/event/presentation/pages/event_details_sc
 import 'package:event_planner/theme/app_colors.dart';
 import 'package:event_planner/features/event/presentation/pages/quick_create_event_screen.dart';
 import 'package:event_planner/features/event/presentation/pages/create_event_form_screen.dart';
-import 'package:event_planner/features/event/presentation/state/event_viewmodel.dart';
+import 'package:event_planner/features/event/data/repositories/event_repository_impl.dart';
 
 final dashboardEventsProvider = FutureProvider<List<Event>>((ref) async {
+  final authState = ref.watch(authViewModelProvider);
+  final userId = authState.user?.authId ?? '';
   final repository = ref.read(eventRepositoryProvider);
-  return repository
-      .getUserEvents('')
+
+  // Prefer user-scoped events when logged in, otherwise show public events.
+  final events = await repository
+      .getUserEvents(userId.isNotEmpty ? userId : '')
       .timeout(
         const Duration(seconds: 20),
         onTimeout: () => throw Exception(
           'Request timeout. Check backend connection and try again.',
         ),
       );
+
+  // Keep home populated using public events if user-scoped list is empty.
+  if (events.isEmpty && userId.isNotEmpty) {
+    return repository
+        .getUserEvents('')
+        .timeout(
+          const Duration(seconds: 20),
+          onTimeout: () => throw Exception(
+            'Request timeout. Check backend connection and try again.',
+          ),
+        );
+  }
+
+  return events;
 });
 
 class HomeScreen extends ConsumerStatefulWidget {

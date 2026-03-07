@@ -44,13 +44,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _passwordController = TextEditingController();
     _confirmPasswordController = TextEditingController();
 
+    // Always fetch current user to ensure we have the latest data
     Future.microtask(() {
       final authViewModel = ref.read(authViewModelProvider.notifier);
-      final authState = ref.read(authViewModelProvider);
-
-      if (authState.user == null && authState.status != AuthStatus.loading) {
-        authViewModel.getCurrentUser();
-      }
+      authViewModel.getCurrentUser();
     });
   }
 
@@ -852,50 +849,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: _isSavingProfile
-                        ? null
-                        : () async {
-                            if (_formKey.currentState!.validate()) {
-                              setState(() {
-                                _isSavingProfile = true;
-                              });
-
-                              final authViewModel = ref.read(
-                                authViewModelProvider.notifier,
-                              );
-                              final params = UpdateProfileParams(
-                                firstName: _firstNameController.text,
-                                lastName: _lastNameController.text,
-                                username: _usernameController.text,
-                                email: _emailController.text,
-                                phoneNumber: _phoneController.text,
-                              );
-
-                              await authViewModel.updateProfile(params);
-
-                              if (mounted) {
-                                setState(() {
-                                  _isSavingProfile = false;
-                                  _isEditFormVisible = false;
-                                });
-
-                                final authState = ref.read(
-                                  authViewModelProvider,
-                                );
-                                if (authState.status ==
-                                    AuthStatus.authenticated) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Profile updated successfully',
-                                      ),
-                                      backgroundColor: Colors.green,
-                                    ),
-                                  );
-                                }
-                              }
-                            }
-                          },
+                    onPressed: _isSavingProfile ? null : _saveProfile,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       shape: RoundedRectangleBorder(

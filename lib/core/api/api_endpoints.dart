@@ -5,65 +5,28 @@ import 'package:flutter/foundation.dart';
 class ApiEndpoints {
   ApiEndpoints._();
 
-  // Optional full override:
-  // flutter run --dart-define=API_BASE_URL=http://10.1.6.169:5050/api/
-  static const String apiBaseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: '',
-  );
+  static const bool isPhysicalDevice = true;
 
-  // Optional host override, useful for Android physical devices on LAN.
-  // flutter run --dart-define=API_HOST=10.1.6.169
-  static const String apiHost = String.fromEnvironment(
-    'API_HOST',
-    defaultValue: '',
-  );
-
-  // Set true when using `adb reverse tcp:5050 tcp:5050` on Android.
-  static const bool useAdbReverse = bool.fromEnvironment(
-    'USE_ADB_REVERSE',
-    defaultValue: true,
-  );
-
-  // Backend port.
-  static const String apiPort = '5050';
+  static const String compIpAddress = "192.168.18.79";
 
   static String get baseUrl {
-    if (apiBaseUrl.isNotEmpty) {
-      return normalizeApiBase(apiBaseUrl);
-    }
-
-    if (apiHost.isNotEmpty) {
-      return 'http://$apiHost:$apiPort/api/';
+    if (isPhysicalDevice) {
+      return 'http://$compIpAddress:5050/api/';
     }
 
     if (kIsWeb) {
-      return 'http://localhost:$apiPort/api/';
+      return 'http://localhost:5050/api/';
+    } else if (Platform.isAndroid) {
+      return 'http://10.0.2.2:5050/api/';
+    } else if (Platform.isIOS) {
+      return 'http://localhost:5050/api/';
+    } else {
+      return 'http://localhost:5050/api/';
     }
-
-    if (Platform.isAndroid) {
-      if (useAdbReverse) {
-        return 'http://127.0.0.1:$apiPort/api/';
-      }
-
-      if (apiHost.isNotEmpty) {
-        return 'http://$apiHost:$apiPort/api/';
-      }
-
-      return 'http://10.0.2.2:$apiPort/api/';
-    }
-
-    if (Platform.isIOS) {
-      return 'http://localhost:$apiPort/api/';
-    }
-
-    return 'http://localhost:$apiPort/api/';
   }
 
-  static List<String> get baseUrlCandidates => [baseUrl];
-
-  static const Duration connectionTimeout = Duration(seconds: 8);
-  static const Duration receiveTimeout = Duration(seconds: 20);
+  static const Duration connectionTimeout = Duration(seconds: 15);
+  static const Duration receiveTimeout = Duration(seconds: 15);
 
   static String normalizeApiBase(String value) {
     var v = value.trim();
@@ -81,8 +44,19 @@ class ApiEndpoints {
         ? relativePath.substring(1)
         : relativePath;
 
-    final root = baseUrl.replaceFirst('/api/', '/');
-    return '$root$cleanPath';
+    if (isPhysicalDevice) {
+      return 'http://$compIpAddress:5050/$cleanPath';
+    }
+
+    if (kIsWeb) {
+      return 'http://localhost:5050/$cleanPath';
+    } else if (Platform.isAndroid) {
+      return 'http://10.0.2.2:5050/$cleanPath';
+    } else if (Platform.isIOS) {
+      return 'http://localhost:5050/$cleanPath';
+    } else {
+      return 'http://localhost:5050/$cleanPath';
+    }
   }
 
   // -------------------------- AUTH -------------------------
@@ -101,4 +75,20 @@ class ApiEndpoints {
   static const String getEventById = 'events/';
   static const String updateEvent = 'events/';
   static const String deleteEvent = 'events/';
+
+  // ----------------------- VENUES ----------------------
+  static const String venues = 'venues';
+  static const String userVenues = 'venues/user/my-venues';
+
+  // -------------------- NOTIFICATIONS ------------------
+  static const String notifications = 'notifications';
+  static const String notificationUnreadCount = 'notifications/unread-count';
+  static const String notificationMarkAllRead = 'notifications/mark-all-read';
+
+  // ----------------------- CHAT ------------------------
+  static const String chatHistory = 'chat/history';
+  static const String chatSendUser = 'chat/user/send';
+
+  // --------------------- PAYMENTS ----------------------
+  static const String khaltiVerify = 'payments/khalti-verify';
 }
