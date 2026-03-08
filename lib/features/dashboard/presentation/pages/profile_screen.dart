@@ -32,6 +32,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late final TextEditingController _confirmPasswordController;
   bool _isSavingProfile = false;
   bool _isEditFormVisible = false;
+  bool _notificationsEnabled = true;
+  bool _privacyPublic = true;
+  bool _emailUpdatesEnabled = false;
+  bool _expandedAccountSettings = false;
+  bool _expandedPrivacySettings = false;
+  bool _expandedPreferences = false;
 
   @override
   void initState() {
@@ -302,6 +308,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       // Profile Picture with Edit Button
                       Stack(
@@ -411,61 +418,122 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               if (user != null) ...[
                 _isEditFormVisible
                     ? _buildEditProfileSection()
-                    : _buildEditProfileButton(),
+                    : Column(
+                        children: [
+                          _buildEditProfileButton(),
+                          const SizedBox(height: 20),
+                          // Settings Buttons Section
+                          _buildExpandableSettingsCard(
+                            title: 'Account Information',
+                            icon: Icons.account_box,
+                            isExpanded: _expandedAccountSettings,
+                            onTap: () {
+                              setState(() {
+                                _expandedAccountSettings =
+                                    !_expandedAccountSettings;
+                              });
+                            },
+                            child: user != null
+                                ? Column(
+                                    children: [
+                                      _buildInfoCardCompact(
+                                        icon: Icons.person,
+                                        label: 'Full Name',
+                                        value: user.fullName,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      _buildInfoCardCompact(
+                                        icon: Icons.email,
+                                        label: 'Email',
+                                        value: user.email,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      _buildInfoCardCompact(
+                                        icon: Icons.account_circle,
+                                        label: 'Username',
+                                        value: user.username,
+                                      ),
+                                      if (user.phoneNumber != null &&
+                                          user.phoneNumber!.isNotEmpty) ...[
+                                        const SizedBox(height: 12),
+                                        _buildInfoCardCompact(
+                                          icon: Icons.phone,
+                                          label: 'Phone',
+                                          value: user.phoneNumber!,
+                                        ),
+                                      ],
+                                    ],
+                                  )
+                                : const SizedBox(),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildExpandableSettingsCard(
+                            title: 'Preferences',
+                            icon: Icons.notifications,
+                            isExpanded: _expandedPreferences,
+                            onTap: () {
+                              setState(() {
+                                _expandedPreferences = !_expandedPreferences;
+                              });
+                            },
+                            child: Column(
+                              children: [
+                                _buildSettingsTile(
+                                  icon: Icons.notifications,
+                                  label: 'Push Notifications',
+                                  subtitle:
+                                      'Receive event updates and reminders',
+                                  value: _notificationsEnabled,
+                                  onChanged: (value) {
+                                    setState(
+                                      () => _notificationsEnabled = value,
+                                    );
+                                  },
+                                ),
+                                Divider(
+                                  height: 1,
+                                  color: Colors.grey.shade200,
+                                  thickness: 1,
+                                ),
+                                _buildSettingsTile(
+                                  icon: Icons.email,
+                                  label: 'Email Updates',
+                                  subtitle: 'Get news and updates via email',
+                                  value: _emailUpdatesEnabled,
+                                  onChanged: (value) {
+                                    setState(
+                                      () => _emailUpdatesEnabled = value,
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildExpandableSettingsCard(
+                            title: 'Privacy',
+                            icon: Icons.privacy_tip,
+                            isExpanded: _expandedPrivacySettings,
+                            onTap: () {
+                              setState(() {
+                                _expandedPrivacySettings =
+                                    !_expandedPrivacySettings;
+                              });
+                            },
+                            child: _buildSettingsTile(
+                              icon: Icons.privacy_tip,
+                              label: 'Public Profile',
+                              subtitle: 'Allow others to see your profile',
+                              value: _privacyPublic,
+                              onChanged: (value) {
+                                setState(() => _privacyPublic = value);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                 const SizedBox(height: 24),
               ],
-              // Information Section
-              const Text(
-                'Account Information',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 12),
-              if (user != null)
-                Column(
-                  children: [
-                    _buildInfoCard(
-                      icon: Icons.person,
-                      label: 'Full Name',
-                      value: user.fullName,
-                    ),
-                    const SizedBox(height: 10),
-                    _buildInfoCard(
-                      icon: Icons.email,
-                      label: 'Email',
-                      value: user.email,
-                    ),
-                    const SizedBox(height: 10),
-                    _buildInfoCard(
-                      icon: Icons.account_circle,
-                      label: 'Username',
-                      value: user.username,
-                    ),
-                    if (user.phoneNumber != null &&
-                        user.phoneNumber!.isNotEmpty) ...[
-                      const SizedBox(height: 10),
-                      _buildInfoCard(
-                        icon: Icons.phone,
-                        label: 'Phone',
-                        value: user.phoneNumber!,
-                      ),
-                    ],
-                  ],
-                ),
-              const SizedBox(height: 28),
-              // Statistics Section
-              Row(
-                children: [
-                  Expanded(child: _buildStatCard('Events', '12')),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildStatCard('Attending', '8')),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildStatCard('Created', '4')),
-                ],
-              ),
               const SizedBox(height: 28),
               // Logout Button
               SizedBox(
@@ -564,6 +632,75 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
+  Widget _buildExpandableSettingsCard({
+    required String title,
+    required IconData icon,
+    required bool isExpanded,
+    required VoidCallback onTap,
+    required Widget child,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: AppColors.primary.withOpacity(0.15),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.all(10),
+                    child: Icon(icon, color: AppColors.primary, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    isExpanded ? Icons.expand_less : Icons.expand_more,
+                    color: AppColors.primary,
+                    size: 24,
+                  ),
+                ],
+              ),
+            ),
+            if (isExpanded) ...[
+              Divider(height: 1, color: Colors.grey.shade200, thickness: 1),
+              Padding(padding: const EdgeInsets.all(14), child: child),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   void _populateProfileFields(AuthEntity user) {
     final nameParts = user.fullName.trim().split(RegExp(r'\s+'));
     _firstNameController.text = nameParts.isNotEmpty ? nameParts.first : '';
@@ -610,14 +747,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     required String value,
   }) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.primary.withOpacity(0.1), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 6,
+            color: AppColors.primary.withOpacity(0.06),
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
@@ -626,13 +764,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: AppColors.primaryLight,
-              borderRadius: BorderRadius.circular(10),
+              color: AppColors.primary.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(12),
             ),
-            padding: const EdgeInsets.all(8),
-            child: Icon(icon, color: AppColors.primary, size: 20),
+            padding: const EdgeInsets.all(10),
+            child: Icon(icon, color: AppColors.primary, size: 22),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -640,17 +778,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 Text(
                   label,
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   value,
                   style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
                   ),
                   maxLines: 1,
@@ -664,39 +802,86 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildStatCard(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
+  Widget _buildInfoCardCompact({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, color: AppColors.primary, size: 18),
+        const SizedBox(width: 10),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSettingsTile({
+    required IconData icon,
+    required String label,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
         children: [
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
+          Icon(icon, color: AppColors.primary, size: 18),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
+          const SizedBox(width: 8),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: AppColors.primary,
+            inactiveThumbColor: Colors.grey.shade400,
           ),
         ],
       ),
@@ -731,15 +916,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Widget _buildEditProfileSection() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: AppColors.primary.withOpacity(0.15),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: AppColors.primary.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -751,18 +940,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             const Text(
               'Edit Profile',
               style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
                 color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             TextFormField(
               controller: _firstNameController,
               decoration: InputDecoration(
                 labelText: 'First Name',
+                filled: true,
+                fillColor: Colors.grey.shade100,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
                 ),
               ),
               validator: (value) {
@@ -772,23 +968,37 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             TextFormField(
               controller: _lastNameController,
               decoration: InputDecoration(
                 labelText: 'Last Name',
+                filled: true,
+                fillColor: Colors.grey.shade100,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             TextFormField(
               controller: _usernameController,
               decoration: InputDecoration(
                 labelText: 'Username',
+                filled: true,
+                fillColor: Colors.grey.shade100,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
                 ),
               ),
               validator: (value) {
@@ -798,13 +1008,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             TextFormField(
               controller: _emailController,
               decoration: InputDecoration(
                 labelText: 'Email',
+                filled: true,
+                fillColor: Colors.grey.shade100,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
                 ),
               ),
               validator: (value) {
@@ -814,35 +1031,153 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             TextFormField(
               controller: _phoneController,
               decoration: InputDecoration(
                 labelText: 'Phone Number',
+                filled: true,
+                fillColor: Colors.grey.shade100,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 28),
+            // Account Information Section
+            const Text(
+              'Account Information',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade200, width: 1),
+              ),
+              child: Column(
+                children: [
+                  _buildInfoCardCompact(
+                    icon: Icons.person,
+                    label: 'Full Name',
+                    value:
+                        _firstNameController.text +
+                        ' ' +
+                        _lastNameController.text,
+                  ),
+                  const SizedBox(height: 10),
+                  _buildInfoCardCompact(
+                    icon: Icons.email,
+                    label: 'Email',
+                    value: _emailController.text,
+                  ),
+                  const SizedBox(height: 10),
+                  _buildInfoCardCompact(
+                    icon: Icons.account_circle,
+                    label: 'Username',
+                    value: _usernameController.text,
+                  ),
+                  if (_phoneController.text.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    _buildInfoCardCompact(
+                      icon: Icons.phone,
+                      label: 'Phone',
+                      value: _phoneController.text,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 28),
+            // Settings Section
+            const Text(
+              'Settings',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.cardBackground,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.primary.withOpacity(0.1),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                children: [
+                  _buildSettingsTile(
+                    icon: Icons.notifications,
+                    label: 'Push Notifications',
+                    subtitle: 'Receive event updates and reminders',
+                    value: _notificationsEnabled,
+                    onChanged: (value) {
+                      setState(() => _notificationsEnabled = value);
+                    },
+                  ),
+                  Divider(height: 1, color: Colors.grey.shade200, thickness: 1),
+                  _buildSettingsTile(
+                    icon: Icons.privacy_tip,
+                    label: 'Public Profile',
+                    subtitle: 'Allow others to see your profile',
+                    value: _privacyPublic,
+                    onChanged: (value) {
+                      setState(() => _privacyPublic = value);
+                    },
+                  ),
+                  Divider(height: 1, color: Colors.grey.shade200, thickness: 1),
+                  _buildSettingsTile(
+                    icon: Icons.email,
+                    label: 'Email Updates',
+                    subtitle: 'Get news and updates via email',
+                    value: _emailUpdatesEnabled,
+                    onChanged: (value) {
+                      setState(() => _emailUpdatesEnabled = value);
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton(
+                  child: OutlinedButton(
                     onPressed: () {
                       setState(() {
                         _isEditFormVisible = false;
                       });
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.textSecondary,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: BorderSide(color: Colors.grey.shade300, width: 1.5),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: const Text(
                       'Cancel',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
                     ),
                   ),
                 ),
@@ -852,24 +1187,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     onPressed: _isSavingProfile ? null : _saveProfile,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
+                      disabledBackgroundColor: AppColors.primary.withOpacity(
+                        0.6,
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: _isSavingProfile
                         ? const SizedBox(
-                            height: 20,
-                            width: 20,
+                            height: 18,
+                            width: 18,
                             child: CircularProgressIndicator(
-                              strokeWidth: 2,
+                              strokeWidth: 2.5,
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 Colors.white,
                               ),
                             ),
                           )
                         : const Text(
-                            'Save',
-                            style: TextStyle(color: Colors.white),
+                            'Save Changes',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
                           ),
                   ),
                 ),
