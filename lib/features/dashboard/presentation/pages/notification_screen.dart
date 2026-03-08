@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:event_planner/core/localization/app_localizations.dart';
+import 'package:event_planner/core/localization/locale_provider.dart';
 import 'package:event_planner/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:event_planner/features/notifications/presentation/state/notification_viewmodel.dart';
@@ -59,17 +61,19 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    ref.watch(localeProvider); // Watch locale to rebuild when language changes
     final state = ref.watch(notificationViewModelProvider);
     final vm = ref.read(notificationViewModelProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: Text(l10n.tr('notifications')),
         elevation: 0,
         actions: [
           TextButton(
             onPressed: state.unreadCount > 0 ? vm.markAllAsRead : null,
-            child: const Text('Mark all read'),
+            child: Text(l10n.tr('mark_all_read')),
           ),
         ],
       ),

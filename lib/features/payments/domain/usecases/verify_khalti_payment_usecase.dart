@@ -6,16 +6,24 @@ import 'package:event_planner/features/payments/domain/repositories/payment_repo
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class VerifyKhaltiPaymentParams {
-  final String token;
-  final int amount;
-  final String eventId;
   final String userId;
+  final String eventId;
+  final int amount;
+  final String paymentMethod;
+  final String cardHolderName;
+  final String cardNumber;
+  final String expiryDate;
+  final String cvv;
 
   const VerifyKhaltiPaymentParams({
-    required this.token,
-    required this.amount,
-    required this.eventId,
     required this.userId,
+    required this.eventId,
+    required this.amount,
+    this.paymentMethod = 'Card',
+    required this.cardHolderName,
+    required this.cardNumber,
+    required this.expiryDate,
+    required this.cvv,
   });
 }
 
@@ -27,11 +35,15 @@ class VerifyKhaltiPaymentUsecase {
   Future<Either<Failure, PaymentResultEntity>> call(
     VerifyKhaltiPaymentParams params,
   ) {
-    return _repository.verifyKhaltiPayment(
-      token: params.token,
-      amount: params.amount,
-      eventId: params.eventId,
+    return _repository.createDemoPayment(
       userId: params.userId,
+      eventId: params.eventId,
+      amount: params.amount,
+      paymentMethod: params.paymentMethod,
+      cardHolderName: params.cardHolderName,
+      cardNumber: params.cardNumber,
+      expiryDate: params.expiryDate,
+      cvv: params.cvv,
     );
   }
 }

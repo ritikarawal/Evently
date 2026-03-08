@@ -25,29 +25,53 @@ class PaymentRepositoryImpl implements PaymentRepository {
   PaymentRepositoryImpl(this._remote);
 
   @override
-  Future<Either<Failure, PaymentResultEntity>> verifyKhaltiPayment({
-    required String token,
-    required int amount,
-    required String eventId,
+  Future<Either<Failure, PaymentResultEntity>> createDemoPayment({
     required String userId,
+    required String eventId,
+    required int amount,
+    required String paymentMethod,
+    required String cardHolderName,
+    required String cardNumber,
+    required String expiryDate,
+    required String cvv,
   }) async {
     try {
-      final result = await _remote.verifyKhaltiPayment(
-        token: token,
-        amount: amount,
-        eventId: eventId,
+      final result = await _remote.createDemoPayment(
         userId: userId,
+        eventId: eventId,
+        amount: amount,
+        paymentMethod: paymentMethod,
+        cardHolderName: cardHolderName,
+        cardNumber: cardNumber,
+        expiryDate: expiryDate,
+        cvv: cvv,
       );
 
       return Right(
         PaymentResultEntity(
           success: result['success'] == true,
           message: (result['message'] ?? '').toString(),
+          paymentStatus: (result['paymentStatus'] ?? '').toString(),
+          transactionId: (result['transactionId'] ?? '').toString(),
         ),
       );
     } on DioException catch (e) {
+      return Left(ServerFailure(message: e.message ?? 'Payment failed'));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Map<String, dynamic>>>> getUserPayments(
+    String userId,
+  ) async {
+    try {
+      final list = await _remote.getUserPayments(userId);
+      return Right(list);
+    } on DioException catch (e) {
       return Left(
-        ServerFailure(message: e.message ?? 'Payment verification failed'),
+        ServerFailure(message: e.message ?? 'Failed to fetch payments'),
       );
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));

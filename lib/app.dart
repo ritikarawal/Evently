@@ -3,6 +3,8 @@ import 'package:event_planner/features/auth/presentation/view_model/auth_viewmod
 import 'package:event_planner/features/admin/presentation/pages/admin_dashboard_screen.dart';
 import 'package:event_planner/core/localization/app_localizations.dart';
 import 'package:event_planner/core/localization/locale_provider.dart';
+import 'package:event_planner/core/services/permissions/permission_startup_gate.dart';
+import 'package:event_planner/core/services/sensors/shake_to_close_gate.dart';
 import 'package:event_planner/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:event_planner/features/splash/presentation/pages/Splash_screen.dart';
 import 'package:event_planner/theme/app_theme.dart';
@@ -43,6 +45,11 @@ class App extends ConsumerWidget {
         '/dashboard': (context) => const DashboardScreen(),
         '/admin': (context) => const AdminDashboardScreen(),
       },
+      builder: (context, child) => ShakeToCloseGate(
+        shakeThresholdG: 1.2,
+        hitsRequired: 2,
+        child: PermissionStartupGate(child: child ?? const SizedBox.shrink()),
+      ),
       home: _buildHome(authState),
     );
   }

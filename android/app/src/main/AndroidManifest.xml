@@ -5,7 +5,16 @@
     
     <!-- Camera permission -->
     <uses-permission android:name="android.permission.CAMERA"/>
-    
+
+    <!-- Notification permission for Android 13+ -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <!-- Runtime sensors permission (BODY_SENSORS group) -->
+    <uses-permission android:name="android.permission.BODY_SENSORS"/>
+
+    <!-- Physical activity permission (commonly visible in App Info) -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
+
     <!-- Gallery/Media permissions for Android 13+ (API 33+) -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>

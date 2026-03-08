@@ -51,6 +51,12 @@ class _UserAdminChatScreenState extends ConsumerState<UserAdminChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final background = AppColors.getBackground(brightness);
+    final surface = AppColors.getSurface(brightness);
+    final textPrimary = AppColors.getTextPrimary(brightness);
+    final textSecondary = AppColors.getTextSecondary(brightness);
     final state = ref.watch(chatViewModelProvider);
     final messages = [...state.messages]
       ..sort(
@@ -59,16 +65,17 @@ class _UserAdminChatScreenState extends ConsumerState<UserAdminChatScreen> {
       );
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: background,
       appBar: AppBar(
-        title: const Text('Chat with Admin'),
-        backgroundColor: AppColors.background,
+        title: Text('Chat with Admin', style: TextStyle(color: textPrimary)),
+        backgroundColor: surface,
+        iconTheme: IconThemeData(color: textPrimary),
         actions: [
           IconButton(
             onPressed: () {
               ref.read(chatViewModelProvider.notifier).loadMessages();
             },
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh, color: textPrimary),
           ),
         ],
       ),
@@ -78,10 +85,10 @@ class _UserAdminChatScreenState extends ConsumerState<UserAdminChatScreen> {
             child: state.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : messages.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
                       'No messages yet. Start chatting with admin.',
-                      style: TextStyle(color: AppColors.textSecondary),
+                      style: TextStyle(color: textSecondary),
                     ),
                   )
                 : ListView.builder(
@@ -109,7 +116,9 @@ class _UserAdminChatScreenState extends ConsumerState<UserAdminChatScreen> {
                           decoration: BoxDecoration(
                             color: isUser
                                 ? AppColors.primary
-                                : Colors.grey.shade200,
+                                : (isDark
+                                      ? AppColors.darkSurface
+                                      : Colors.grey.shade200),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
@@ -118,9 +127,7 @@ class _UserAdminChatScreenState extends ConsumerState<UserAdminChatScreen> {
                               Text(
                                 message.text,
                                 style: TextStyle(
-                                  color: isUser
-                                      ? Colors.white
-                                      : AppColors.textPrimary,
+                                  color: isUser ? Colors.white : textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -130,7 +137,7 @@ class _UserAdminChatScreenState extends ConsumerState<UserAdminChatScreen> {
                                   fontSize: 11,
                                   color: isUser
                                       ? Colors.white70
-                                      : Colors.grey.shade600,
+                                      : textSecondary,
                                 ),
                               ),
                             ],
@@ -162,14 +169,19 @@ class _UserAdminChatScreenState extends ConsumerState<UserAdminChatScreen> {
                       decoration: InputDecoration(
                         hintText: 'Type a message...',
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: surface,
+                        hintStyle: TextStyle(color: textSecondary),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
+                          borderSide: BorderSide(
+                            color: AppColors.getBorder(brightness),
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
+                          borderSide: BorderSide(
+                            color: AppColors.getBorder(brightness),
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -182,6 +194,7 @@ class _UserAdminChatScreenState extends ConsumerState<UserAdminChatScreen> {
                           vertical: 10,
                         ),
                       ),
+                      style: TextStyle(color: textPrimary),
                     ),
                   ),
                   const SizedBox(width: 8),

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:event_planner/core/localization/app_localizations.dart';
+import 'package:event_planner/core/localization/locale_provider.dart';
 import 'package:event_planner/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:event_planner/features/event/domain/entities/event.dart';
-import 'package:event_planner/features/event/presentation/pages/event_details_screen.dart';
+import 'package:event_planner/features/event/data/repositories/event_repository_impl.dart';
+import 'package:event_planner/features/event/presentation/widgets/event_details_modal.dart';
 import 'package:event_planner/theme/app_colors.dart';
 import 'package:event_planner/features/event/presentation/pages/create_event_form_screen.dart';
 import 'package:event_planner/features/event/domain/usecases/get_all_events_usecase.dart';
@@ -100,6 +102,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    ref.watch(localeProvider); // Watch locale to rebuild when language changes
     final eventsAsync = ref.watch(dashboardEventsProvider);
 
     return Scaffold(
@@ -118,11 +121,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Text(
-                    'Quick Start',
-                    style: TextStyle(
+                    l10n.tr('quick_start'),
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -222,9 +228,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
-                tabs: const [
-                  Tab(text: 'Upcoming'),
-                  Tab(text: 'Past Events'),
+                tabs: [
+                  Tab(text: l10n.tr('upcoming')),
+                  Tab(text: l10n.tr('past_events')),
                 ],
               ),
             ),
@@ -336,7 +342,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
             const SizedBox(height: 16),
             Text(
-              isUpcoming ? 'No upcoming events' : 'No past events',
+              isUpcoming
+                  ? context.l10n.tr('no_upcoming_events')
+                  : context.l10n.tr('no_past_events'),
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -344,9 +352,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Create your first event to get started',
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            Text(
+              context.l10n.tr('create_first_event'),
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
             ),
           ],
         ),
@@ -364,6 +375,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
       itemBuilder: (context, index) {
         final event = events[index];
+        final currentUserId =
+            ref.read(authViewModelProvider).user?.authId ?? '';
         return _EnvelopeEventCard(
           title: event.title.isEmpty ? 'Untitled Event' : event.title,
           category: _displayCategory(event.category),
@@ -376,6 +389,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           description: event.description,
           icon: _categoryIcon(event.category),
           accentColor: _categoryColor(event.category),
+          primaryActionLabel: _primaryActionLabel(event, currentUserId),
+          onPrimaryAction: () => _handlePrimaryCardAction(event),
           onViewDetails: () {
             if (event.id.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -387,17 +402,96 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               );
               return;
             }
-            Navigator.push(
+            EventDetailsModal.show(
               context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    EventDetailsScreen(eventId: event.id, initialEvent: event),
-              ),
+              event: event,
+              categoryIcon: _categoryIcon(event.category).toString(),
+              accentColor: _categoryColor(event.category),
+              onEventChanged: () {
+                ref.invalidate(dashboardEventsProvider);
+              },
             );
           },
         );
       },
     );
+  }
+
+  bool _isPaidEvent(Event event) {
+    return event.eventType.toLowerCase() == 'paid' || event.ticketPrice > 0;
+  }
+
+  bool _isJoined(Event event, String userId) {
+    if (userId.isEmpty) return false;
+    return event.attendeeIds.contains(userId);
+  }
+
+  String _primaryActionLabel(Event event, String userId) {
+    if (_isPaidEvent(event)) {
+      return context.l10n.tr('proceed_to_payment');
+    }
+    if (_isJoined(event, userId)) {
+      return context.l10n.tr('leave_event');
+    }
+    return context.l10n.tr('join_event');
+  }
+
+  Future<void> _handlePrimaryCardAction(Event event) async {
+    final userId = ref.read(authViewModelProvider).user?.authId ?? '';
+    if (userId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.tr('please_login_to_join'))),
+      );
+      return;
+    }
+    if (event.id.isEmpty) return;
+    if (event.organizerId == userId) {
+      EventDetailsModal.show(
+        context,
+        event: event,
+        categoryIcon: _categoryIcon(event.category).toString(),
+        accentColor: _categoryColor(event.category),
+      );
+      return;
+    }
+
+    final repository = ref.read(eventRepositoryProvider);
+    final joined = _isJoined(event, userId);
+
+    try {
+      if (_isPaidEvent(event)) {
+        EventDetailsModal.show(
+          context,
+          event: event,
+          categoryIcon: _categoryIcon(event.category).toString(),
+          accentColor: _categoryColor(event.category),
+          onEventChanged: () {
+            ref.invalidate(dashboardEventsProvider);
+          },
+        );
+        return;
+      } else {
+        if (joined) {
+          await repository.leaveEvent(event.id);
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.tr('left_successfully'))),
+          );
+        } else {
+          await repository.joinEvent(event.id);
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.tr('joined_successfully'))),
+          );
+        }
+      }
+      ref.invalidate(dashboardEventsProvider);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+    }
   }
 
   String _formatEventDate(DateTime? dateTime) {
@@ -476,6 +570,8 @@ class _EnvelopeEventCard extends StatefulWidget {
   final String description;
   final IconData icon;
   final Color accentColor;
+  final String primaryActionLabel;
+  final VoidCallback onPrimaryAction;
   final VoidCallback onViewDetails;
 
   const _EnvelopeEventCard({
@@ -488,6 +584,8 @@ class _EnvelopeEventCard extends StatefulWidget {
     required this.description,
     required this.icon,
     required this.accentColor,
+    required this.primaryActionLabel,
+    required this.onPrimaryAction,
     required this.onViewDetails,
   });
 
@@ -658,7 +756,7 @@ class _EnvelopeEventCardState extends State<_EnvelopeEventCard>
                             ),
                             const Spacer(),
                             TextButton(
-                              onPressed: widget.onViewDetails,
+                              onPressed: widget.onPrimaryAction,
                               style: TextButton.styleFrom(
                                 foregroundColor: widget.accentColor,
                                 minimumSize: const Size(0, 28),
@@ -667,9 +765,9 @@ class _EnvelopeEventCardState extends State<_EnvelopeEventCard>
                                 ),
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
-                              child: const Text(
-                                'Open',
-                                style: TextStyle(fontSize: 11),
+                              child: Text(
+                                widget.primaryActionLabel,
+                                style: const TextStyle(fontSize: 11),
                               ),
                             ),
                           ],

@@ -106,4 +106,7 @@ class ApiEndpoints {
 
   // --------------------- PAYMENTS ----------------------
   static const String khaltiVerify = 'payments/khalti-verify';
+  static const String paymentCreate = 'payments/create';
+  static String paymentsByUser(String userId) => 'payments/user/$userId';
+  static String paymentsByEvent(String eventId) => 'payments/event/$eventId';
 }

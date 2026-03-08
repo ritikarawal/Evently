@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:event_planner/theme/app_colors.dart';
+import 'package:event_planner/core/localization/app_localizations.dart';
+import 'package:event_planner/core/localization/locale_provider.dart';
 import 'package:event_planner/features/event/domain/entities/event.dart';
 import 'package:event_planner/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:event_planner/features/event/data/repositories/event_repository_impl.dart';
-import 'package:event_planner/features/event/presentation/pages/event_details_screen.dart';
+import 'package:event_planner/features/event/presentation/widgets/event_details_modal.dart';
 
 class _EventsTabData {
   final List<Event> myEvents;
@@ -73,18 +75,20 @@ class _EventScreenState extends ConsumerState<EventScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    ref.watch(localeProvider); // Watch locale to rebuild when language changes
     final eventsAsync = ref.watch(eventScreenDataProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Events'),
+        title: Text(l10n.tr('events')),
         elevation: 0,
         centerTitle: true,
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: 'My Events'),
-            Tab(text: 'Booked Events'),
+          tabs: [
+            Tab(text: l10n.tr('my_events')),
+            Tab(text: l10n.tr('booked_events')),
           ],
           labelColor: AppColors.primary,
           unselectedLabelColor: AppColors.textSecondary,
@@ -108,7 +112,7 @@ class _EventScreenState extends ConsumerState<EventScreen>
 
   Widget _buildEventGrid(List<Event> events) {
     if (events.isEmpty) {
-      return const Center(child: Text('No events found'));
+      return Center(child: Text(context.l10n.tr('no_events_found')));
     }
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -122,6 +126,8 @@ class _EventScreenState extends ConsumerState<EventScreen>
         itemCount: events.length,
         itemBuilder: (context, index) {
           final event = events[index];
+          final currentUserId =
+              ref.read(authViewModelProvider).user?.authId ?? '';
           return _EnvelopeEventCard(
             title: event.title.isEmpty ? 'Untitled Event' : event.title,
             category: _displayCategory(event.category),
@@ -134,6 +140,8 @@ class _EventScreenState extends ConsumerState<EventScreen>
             description: event.description,
             icon: _categoryIcon(event.category),
             accentColor: _categoryColor(event.category),
+            primaryActionLabel: _primaryActionLabel(event, currentUserId),
+            onPrimaryAction: () => _handlePrimaryCardAction(event),
             onViewDetails: () {
               if (event.id.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -145,20 +153,97 @@ class _EventScreenState extends ConsumerState<EventScreen>
                 );
                 return;
               }
-              Navigator.push(
+              EventDetailsModal.show(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => EventDetailsScreen(
-                    eventId: event.id,
-                    initialEvent: event,
-                  ),
-                ),
+                event: event,
+                categoryIcon: _categoryIcon(event.category).toString(),
+                accentColor: _categoryColor(event.category),
+                onEventChanged: () {
+                  ref.invalidate(eventScreenDataProvider);
+                },
               );
             },
           );
         },
       ),
     );
+  }
+
+  bool _isPaidEvent(Event event) {
+    return event.eventType.toLowerCase() == 'paid' || event.ticketPrice > 0;
+  }
+
+  bool _isJoined(Event event, String userId) {
+    if (userId.isEmpty) return false;
+    return event.attendeeIds.contains(userId);
+  }
+
+  String _primaryActionLabel(Event event, String userId) {
+    if (_isPaidEvent(event)) {
+      return context.l10n.tr('proceed_to_payment');
+    }
+    if (_isJoined(event, userId)) {
+      return context.l10n.tr('leave_event');
+    }
+    return context.l10n.tr('join_event');
+  }
+
+  Future<void> _handlePrimaryCardAction(Event event) async {
+    final userId = ref.read(authViewModelProvider).user?.authId ?? '';
+    if (userId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.tr('please_login_to_join'))),
+      );
+      return;
+    }
+    if (event.id.isEmpty) return;
+    if (event.organizerId == userId) {
+      EventDetailsModal.show(
+        context,
+        event: event,
+        categoryIcon: _categoryIcon(event.category).toString(),
+        accentColor: _categoryColor(event.category),
+      );
+      return;
+    }
+
+    final repository = ref.read(eventRepositoryProvider);
+    final joined = _isJoined(event, userId);
+
+    try {
+      if (_isPaidEvent(event)) {
+        EventDetailsModal.show(
+          context,
+          event: event,
+          categoryIcon: _categoryIcon(event.category).toString(),
+          accentColor: _categoryColor(event.category),
+          onEventChanged: () {
+            ref.invalidate(eventScreenDataProvider);
+          },
+        );
+        return;
+      } else {
+        if (joined) {
+          await repository.leaveEvent(event.id);
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.tr('left_successfully'))),
+          );
+        } else {
+          await repository.joinEvent(event.id);
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.tr('joined_successfully'))),
+          );
+        }
+      }
+      ref.invalidate(eventScreenDataProvider);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+    }
   }
 
   String _formatEventDate(DateTime? dateTime) {
@@ -237,6 +322,8 @@ class _EnvelopeEventCard extends StatefulWidget {
   final String description;
   final IconData icon;
   final Color accentColor;
+  final String primaryActionLabel;
+  final VoidCallback onPrimaryAction;
   final VoidCallback onViewDetails;
 
   const _EnvelopeEventCard({
@@ -249,6 +336,8 @@ class _EnvelopeEventCard extends StatefulWidget {
     required this.description,
     required this.icon,
     required this.accentColor,
+    required this.primaryActionLabel,
+    required this.onPrimaryAction,
     required this.onViewDetails,
   });
 
@@ -419,7 +508,7 @@ class _EnvelopeEventCardState extends State<_EnvelopeEventCard>
                             ),
                             const Spacer(),
                             TextButton(
-                              onPressed: widget.onViewDetails,
+                              onPressed: widget.onPrimaryAction,
                               style: TextButton.styleFrom(
                                 foregroundColor: widget.accentColor,
                                 minimumSize: const Size(0, 28),
@@ -428,9 +517,9 @@ class _EnvelopeEventCardState extends State<_EnvelopeEventCard>
                                 ),
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
-                              child: const Text(
-                                'Open',
-                                style: TextStyle(fontSize: 11),
+                              child: Text(
+                                widget.primaryActionLabel,
+                                style: const TextStyle(fontSize: 11),
                               ),
                             ),
                           ],
