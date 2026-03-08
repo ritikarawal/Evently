@@ -1,34 +1,39 @@
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 
 class ApiEndpoints {
   ApiEndpoints._();
 
-  // 🔧 YOUR PC'S WIFI IP ADDRESS (from ipconfig - WiFi adapter)
-  // Change this if your IP changes
-  static const String backendHost = "10.1.6.169";
-  static const int backendPort = 5050;
+  static const bool isPhysicalDevice = true;
+
+  static const String compIpAddress = "192.168.18.79";
 
   static String get baseUrl {
-    // Same backend for ALL platforms (web and mobile)
+    if (isPhysicalDevice) {
+      return 'http://$compIpAddress:5050/api/';
+    }
+
     if (kIsWeb) {
-      // Web: Use localhost when running on same machine
-      return 'http://localhost:$backendPort/api/';
+      return 'http://localhost:5050/api/';
     } else if (Platform.isAndroid) {
-      // Android: Use localhost with ADB port forwarding
-      // Run: adb reverse tcp:5050 tcp:5050
-      return 'http://localhost:$backendPort/api/';
+      return 'http://10.0.2.2:5050/api/';
     } else if (Platform.isIOS) {
-      // iOS physical device: Use PC's WiFi IP
-      return 'http://$backendHost:$backendPort/api/';
+      return 'http://localhost:5050/api/';
     } else {
-      // Desktop (Windows/Mac/Linux): Use localhost
-      return 'http://localhost:$backendPort/api/';
+      return 'http://localhost:5050/api/';
     }
   }
 
-  static const Duration connectionTimeout = Duration(seconds: 30);
-  static const Duration receiveTimeout = Duration(seconds: 30);
+  static const Duration connectionTimeout = Duration(seconds: 15);
+  static const Duration receiveTimeout = Duration(seconds: 15);
+
+  static String normalizeApiBase(String value) {
+    var v = value.trim();
+    if (!v.endsWith('/')) v = '$v/';
+    if (!v.endsWith('api/')) v = '${v}api/';
+    return v;
+  }
 
   // Get full URL for uploaded images
   static String getImageUrl(String? relativePath) {
@@ -39,14 +44,18 @@ class ApiEndpoints {
         ? relativePath.substring(1)
         : relativePath;
 
-    // Use same base URL logic for images
+    if (isPhysicalDevice) {
+      return 'http://$compIpAddress:5050/$cleanPath';
+    }
+
     if (kIsWeb) {
-      return 'http://localhost:$backendPort/$cleanPath';
+      return 'http://localhost:5050/$cleanPath';
     } else if (Platform.isAndroid) {
-      // Android with ADB port forwarding
-      return 'http://localhost:$backendPort/$cleanPath';
+      return 'http://10.0.2.2:5050/$cleanPath';
+    } else if (Platform.isIOS) {
+      return 'http://localhost:5050/$cleanPath';
     } else {
-      return 'http://$backendHost:$backendPort/$cleanPath';
+      return 'http://localhost:5050/$cleanPath';
     }
   }
 
@@ -56,5 +65,48 @@ class ApiEndpoints {
   static const String userRegister = 'auth/register';
   static const String userById = 'auth/user/';
   static const String userByEmail = 'auth/user/email/';
+  static const String userProfile = 'auth/profile';
   static const String updateProfilePicture = 'auth/user/profile-picture';
+
+  // ----------------------- EVENTS ----------------------
+  static const String events = 'events/';
+  static const String createEvent = 'events';
+  static const String getEvents = 'events';
+  static const String getEventById = 'events/';
+  static const String updateEvent = 'events/';
+  static const String deleteEvent = 'events/';
+
+  // ----------------------- VENUES ----------------------
+  static const String venues = 'venues';
+  static const String userVenues = 'venues/user/my-venues';
+
+  // -------------------- NOTIFICATIONS ------------------
+  static const String notifications = 'notifications';
+  static const String notificationUnreadCount = 'notifications/unread-count';
+  static const String notificationMarkAllRead = 'notifications/mark-all-read';
+
+  // ----------------------- CHAT ------------------------
+  static const String chatHistory = 'chat/history';
+  static const String chatUnreadCount = 'chat/unread-count';
+  static const String chatSendUser = 'chat/user/send';
+  static const String adminChatUsers = 'chat/admin/users';
+  static String adminChatUser(String userId) => 'chat/admin/user/$userId';
+  static String adminChatSend(String userId) => 'chat/admin/user/$userId/send';
+
+  // ----------------------- ADMIN -----------------------
+  static const String adminUsers = 'admin/users';
+  static String adminUserById(String userId) => 'admin/users/$userId';
+
+  static const String adminEvents = 'admin/events';
+  static String adminApproveEvent(String eventId) =>
+      'admin/events/$eventId/approve';
+  static String adminDeclineEvent(String eventId) =>
+      'admin/events/$eventId/decline';
+  static String adminEventById(String eventId) => 'admin/events/$eventId';
+
+  // --------------------- PAYMENTS ----------------------
+  static const String khaltiVerify = 'payments/khalti-verify';
+  static const String paymentCreate = 'payments/create';
+  static String paymentsByUser(String userId) => 'payments/user/$userId';
+  static String paymentsByEvent(String eventId) => 'payments/event/$eventId';
 }

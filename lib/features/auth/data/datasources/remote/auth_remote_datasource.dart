@@ -37,6 +37,23 @@ class AuthRemoteDataSource implements IAuthRemoteDataSource {
   }
 
   @override
+  Future<AuthApiModel?> getProfile() async {
+    try {
+      final response = await _dio.get(ApiEndpoints.userProfile);
+
+      if (response.statusCode == 200) {
+        final responseData = response.data as Map<String, dynamic>;
+        final userData = responseData['data'] as Map<String, dynamic>;
+        return AuthApiModel.fromJson(userData);
+      }
+      return null;
+    } on DioException catch (e) {
+      print('Get profile error: ${e.message} - Response: ${e.response?.data}');
+      rethrow;
+    }
+  }
+
+  @override
   Future<AuthApiModel> register(AuthApiModel model) async {
     try {
       final response = await _dio.post(
@@ -96,6 +113,23 @@ class AuthRemoteDataSource implements IAuthRemoteDataSource {
       return null;
     } on DioException catch (e) {
       print('Get user by email error: ${e.message}');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<AuthApiModel?> updateProfile(Map<String, dynamic> payload) async {
+    try {
+      final response = await _dio.put(ApiEndpoints.userProfile, data: payload);
+
+      if (response.statusCode == 200) {
+        final responseData = response.data as Map<String, dynamic>;
+        final userData = responseData['data'] as Map<String, dynamic>;
+        return AuthApiModel.fromJson(userData);
+      }
+      return null;
+    } on DioException catch (e) {
+      print('Update profile error: ${e.message}');
       rethrow;
     }
   }

@@ -1,10 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:event_planner/core/api/api_endpoints.dart';
+import 'package:event_planner/core/services/storage/user_session_service.dart';
+import 'package:event_planner/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
-import 'package:event_planner/features/auth/data/repositories/auth_repository_impl.dart';
 
-/// Provider for Dio instance
 final dioProvider = Provider<Dio>((ref) {
   final userSessionService = ref.read(userSessionServiceProvider);
 
@@ -13,34 +14,39 @@ final dioProvider = Provider<Dio>((ref) {
       baseUrl: ApiEndpoints.baseUrl,
       connectTimeout: ApiEndpoints.connectionTimeout,
       receiveTimeout: ApiEndpoints.receiveTimeout,
-      headers: {'Accept': 'application/json'},
-    ),
-  );
-
-  // Add auth interceptor to automatically include token
-  dio.interceptors.add(
-    InterceptorsWrapper(
-      onRequest: (options, handler) {
-        // Get token from session
-        final token = userSessionService.getCurrentUserToken();
-        if (token != null) {
-          options.headers['Authorization'] = 'Bearer $token';
-          print('🔑 Auth token added to request: ${options.path}');
-        } else {
-          print('⚠️ No token found for request: ${options.path}');
-        }
-
-        // Don't override Content-Type for FormData (multipart/form-data)
-        if (options.data is! FormData) {
-          options.headers['Content-Type'] = 'application/json';
-        }
-
-        return handler.next(options);
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
     ),
   );
 
-  // Add pretty logger for development
+  dio.interceptors.add(
+    InterceptorsWrapper(
+      onRequest: (options, handler) {
+        final token = userSessionService.getCurrentUserToken();
+        if (token != null && token.isNotEmpty) {
+          options.headers['Authorization'] = 'Bearer $token';
+        } else {
+          final path = options.path.toLowerCase();
+          final isPublicCall =
+              path.contains('auth/login') ||
+              path.contains('auth/register') ||
+              path == 'events' ||
+              path == 'events/' ||
+              path.startsWith('events?') ||
+              path == 'venues' ||
+              path == 'venues/' ||
+              path.startsWith('venues?');
+          if (!isPublicCall) {
+            debugPrint('No token found for protected request: ${options.path}');
+          }
+        }
+        handler.next(options);
+      },
+    ),
+  );
+
   dio.interceptors.add(
     PrettyDioLogger(
       requestHeader: true,
@@ -55,148 +61,132 @@ final dioProvider = Provider<Dio>((ref) {
   return dio;
 });
 
-/// Provider for ApiClient
 final apiClientProvider = Provider<ApiClient>((ref) {
-  return ApiClient(ref.read(dioProvider));
+  return ApiClient(ref.read(dioProvider), ref.read(userSessionServiceProvider));
 });
 
-/// API Client for handling HTTP requests
 class ApiClient {
   final Dio _dio;
+  final UserSessionService _userSessionService;
 
-  ApiClient(this._dio);
+  ApiClient(this._dio, this._userSessionService);
 
-  /// GET request
-  Future<Response> get(
-    String endpoint, {
-    Map<String, dynamic>? queryParameters,
-    Options? options,
-  }) async {
-    try {
-      final response = await _dio.get(
-        endpoint,
-        queryParameters: queryParameters,
-        options: options,
-      );
-      return response;
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// POST request
-  Future<Response> post(
-    String endpoint, {
+  Future<Response<dynamic>> request({
+    required String method,
+    required String endpoint,
     dynamic data,
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
     try {
-      final response = await _dio.post(
+      return await _dio.request(
         endpoint,
         data: data,
         queryParameters: queryParameters,
-        options: options,
+        options: (options ?? Options()).copyWith(method: method),
       );
-      return response;
     } on DioException catch (e) {
-      throw _handleError(e);
+      throw _mapError(e);
     }
   }
 
-  /// PUT request
-  Future<Response> put(
+  Future<Response<dynamic>> get(
+    String endpoint, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) {
+    return request(
+      method: 'GET',
+      endpoint: endpoint,
+      queryParameters: queryParameters,
+      options: options,
+    );
+  }
+
+  Future<Response<dynamic>> post(
     String endpoint, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
     Options? options,
-  }) async {
-    try {
-      final response = await _dio.put(
-        endpoint,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-      );
-      return response;
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
+  }) {
+    return request(
+      method: 'POST',
+      endpoint: endpoint,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+    );
   }
 
-  /// PATCH request
-  Future<Response> patch(
+  Future<Response<dynamic>> put(
     String endpoint, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
     Options? options,
-  }) async {
-    try {
-      final response = await _dio.patch(
-        endpoint,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-      );
-      return response;
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
+  }) {
+    return request(
+      method: 'PUT',
+      endpoint: endpoint,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+    );
   }
 
-  /// DELETE request
-  Future<Response> delete(
+  Future<Response<dynamic>> patch(
     String endpoint, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
     Options? options,
-  }) async {
-    try {
-      final response = await _dio.delete(
-        endpoint,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-      );
-      return response;
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
+  }) {
+    return request(
+      method: 'PATCH',
+      endpoint: endpoint,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+    );
   }
 
-  /// Handle Dio errors and convert to user-friendly messages
-  Exception _handleError(DioException error) {
-    String errorMessage;
+  Future<Response<dynamic>> delete(
+    String endpoint, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) {
+    return request(
+      method: 'DELETE',
+      endpoint: endpoint,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+    );
+  }
 
+  Exception _mapError(DioException error) {
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
-        errorMessage =
-            'Connection timeout. Please check your internet connection.';
-        break;
+        return Exception(
+          'Connection timeout. Please check your internet connection.',
+        );
       case DioExceptionType.sendTimeout:
-        errorMessage = 'Send timeout. Please try again.';
-        break;
+        return Exception('Send timeout. Please try again.');
       case DioExceptionType.receiveTimeout:
-        errorMessage = 'Receive timeout. Please try again.';
-        break;
+        return Exception('Receive timeout. Please try again.');
       case DioExceptionType.badResponse:
-        errorMessage = _handleStatusCode(error.response?.statusCode);
-        break;
+        return Exception(_statusMessage(error.response?.statusCode));
       case DioExceptionType.cancel:
-        errorMessage = 'Request was cancelled.';
-        break;
+        return Exception('Request was cancelled.');
       case DioExceptionType.connectionError:
-        errorMessage = 'No internet connection. Please check your network.';
-        break;
+        return Exception(
+          'Network connection failed. Please check your internet and backend URL.',
+        );
       default:
-        errorMessage = 'An unexpected error occurred: ${error.message}';
+        return Exception('An unexpected error occurred: ${error.message}');
     }
-
-    return Exception(errorMessage);
   }
 
-  /// Handle HTTP status codes
-  String _handleStatusCode(int? statusCode) {
+  String _statusMessage(int? statusCode) {
     switch (statusCode) {
       case 400:
         return 'Bad request. Please check your input.';
@@ -215,18 +205,16 @@ class ApiClient {
     }
   }
 
-  /// Set authorization token
   void setAuthToken(String token) {
     _dio.options.headers['Authorization'] = 'Bearer $token';
   }
 
-  /// Remove authorization token
-  void removeAuthToken() {
+  Future<void> removeAuthToken() async {
     _dio.options.headers.remove('Authorization');
+    await _userSessionService.clearSession();
   }
 
-  /// Update base URL (useful for switching environments)
   void updateBaseUrl(String newBaseUrl) {
-    _dio.options.baseUrl = newBaseUrl;
+    _dio.options.baseUrl = ApiEndpoints.normalizeApiBase(newBaseUrl);
   }
 }

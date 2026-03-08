@@ -1,11 +1,14 @@
 import 'dart:io'; // Add this import
+import 'package:dio/dio.dart';
 import 'package:dartz/dartz.dart';
+import 'package:event_planner/core/api/api_endpoints.dart';
 import 'package:event_planner/core/error/failures.dart';
 import 'package:event_planner/core/services/connectivity/network_info.dart';
 import 'package:event_planner/features/auth/data/datasources/auth_datasource.dart';
 import 'package:event_planner/features/auth/data/models/auth_api_model.dart';
 import 'package:event_planner/features/auth/data/models/auth_hive_model.dart';
 import 'package:event_planner/features/auth/domain/entities/auth_entity.dart';
+import 'package:event_planner/features/auth/domain/entities/update_profile_params.dart';
 import 'package:event_planner/features/auth/domain/repositories/auth_repository_interface.dart';
 import 'package:event_planner/core/services/storage/user_session_service.dart';
 import 'package:event_planner/core/providers/shared_preferences_provider.dart';
@@ -52,8 +55,8 @@ class AuthRepositoryImpl implements IAuthRepository {
           email: result.email,
           username: result.username ?? result.email.split('@')[0],
           phoneNumber: result.phoneNumber,
-          password: result.password,
-          profilePicture: result.id,
+          password: user.password,
+          profilePicture: result.profilePicture,
         );
         await _localDataSource.register(hiveModel);
 
@@ -84,43 +87,58 @@ class AuthRepositoryImpl implements IAuthRepository {
     String email,
     String password,
   ) async {
+    // Always try remote login first so we get a valid auth token.
     try {
-      if (await _networkInfo.isConnected) {
-        // Call remote API
-        final result = await _remoteDataSource.login(email, password);
-        if (result != null) {
-          // Save to local database
-          final hiveModel = AuthHiveModel(
-            authId: result.id,
-            fullName: result.fullName,
+      final result = await _remoteDataSource.login(email, password);
+      if (result != null) {
+        final hiveModel = AuthHiveModel(
+          authId: result.id,
+          fullName: result.fullName,
+          email: result.email,
+          username: result.username ?? email.split('@')[0],
+          phoneNumber: result.phoneNumber,
+          password: password,
+          profilePicture: result.profilePicture,
+        );
+        await _localDataSource.register(hiveModel);
+
+        if (result.token != null &&
+            result.token!.isNotEmpty &&
+            result.id != null) {
+          await _userSessionService.saveUserSession(
+            userId: result.id!,
             email: result.email,
+            fullName: result.fullName,
             username: result.username ?? email.split('@')[0],
             phoneNumber: result.phoneNumber,
-            password: result.password,
+            profilePicture: result.profilePicture,
+            token: result.token,
           );
-          await _localDataSource.login(email, password);
-
-          // Save session if token is present
-          if (result.token != null && result.id != null) {
-            await _userSessionService.saveUserSession(
-              userId: result.id!,
-              email: result.email,
-              fullName: result.fullName,
-              username: result.username ?? email.split('@')[0],
-              phoneNumber: result.phoneNumber,
-              profilePicture: result.profilePicture,
-              token: result.token,
-            );
-          }
-
-          return Right(result.toEntity());
         }
-        return Left(ServerFailure(message: 'Login failed'));
-      } else {
-        return Left(NetworkFailure(message: 'No internet connection'));
+
+        return Right(result.toEntity());
+      }
+    } on DioException catch (e) {
+      if (!_shouldFallbackToLocal(e)) {
+        return Left(ServerFailure(message: _extractDioErrorMessage(e)));
       }
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
+    }
+
+    try {
+      final localUser = await _localDataSource.login(email, password);
+      if (localUser != null) {
+        return Right(localUser.toEntity());
+      }
+      return Left(
+        NetworkFailure(
+          message:
+              'Cannot reach server at ${ApiEndpoints.baseUrl}. Connect to the same network as backend and try again, or use previously cached credentials.',
+        ),
+      );
+    } catch (e) {
+      return Left(LocalDatabaseFailure(message: e.toString()));
     }
   }
 
@@ -129,6 +147,43 @@ class AuthRepositoryImpl implements IAuthRepository {
     try {
       if (!_userSessionService.isLoggedIn()) {
         return const Right(null);
+      }
+
+      // First try to fetch fresh profile from backend using stored token.
+      if (await _networkInfo.isConnected) {
+        try {
+          final remoteProfile = await _remoteDataSource.getProfile();
+          if (remoteProfile != null) {
+            final currentUserId =
+                _userSessionService.getCurrentUserId() ??
+                remoteProfile.id ??
+                '';
+            await _userSessionService.saveUserSession(
+              userId: currentUserId,
+              email: remoteProfile.email,
+              fullName: remoteProfile.fullName,
+              username:
+                  remoteProfile.username ?? remoteProfile.email.split('@')[0],
+              phoneNumber: remoteProfile.phoneNumber,
+              profilePicture: remoteProfile.profilePicture,
+              token: _userSessionService.getCurrentUserToken(),
+            );
+
+            return Right(
+              AuthEntity(
+                authId: currentUserId,
+                email: remoteProfile.email,
+                fullName: remoteProfile.fullName,
+                username:
+                    remoteProfile.username ?? remoteProfile.email.split('@')[0],
+                phoneNumber: remoteProfile.phoneNumber,
+                profilePicture: remoteProfile.profilePicture,
+              ),
+            );
+          }
+        } catch (_) {
+          // Fall back to cached session data when API is unavailable.
+        }
       }
 
       final userId = _userSessionService.getCurrentUserId();
@@ -142,16 +197,16 @@ class AuthRepositoryImpl implements IAuthRepository {
         return const Right(null);
       }
 
-      // Build entity from session data
-      final user = AuthEntity(
-        email: email,
-        fullName: fullName,
-        username: username ?? email.split('@')[0],
-        phoneNumber: phoneNumber,
-        profilePicture: profilePicture,
+      return Right(
+        AuthEntity(
+          authId: userId,
+          email: email,
+          fullName: fullName,
+          username: username ?? email.split('@')[0],
+          phoneNumber: phoneNumber,
+          profilePicture: profilePicture,
+        ),
       );
-
-      return Right(user);
     } catch (e) {
       return Left(LocalDatabaseFailure(message: e.toString()));
     }
@@ -183,6 +238,63 @@ class AuthRepositoryImpl implements IAuthRepository {
         }
         return Left(NetworkFailure(message: 'No internet connection'));
       }
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AuthEntity>> updateProfile(
+    UpdateProfileParams params,
+  ) async {
+    try {
+      final currentToken = _userSessionService.getCurrentUserToken();
+      if (currentToken == null || currentToken.isEmpty) {
+        return Left(
+          NetworkFailure(message: 'Session token missing. Please login again.'),
+        );
+      }
+
+      final result = await _remoteDataSource.updateProfile(params.toJson());
+      if (result == null) {
+        return Left(ServerFailure(message: 'Failed to update profile'));
+      }
+
+      final currentUserId =
+          _userSessionService.getCurrentUserId() ?? result.id ?? '';
+      await _userSessionService.saveUserSession(
+        userId: currentUserId,
+        email: result.email,
+        fullName: result.fullName,
+        username: result.username ?? result.email.split('@')[0],
+        phoneNumber: result.phoneNumber,
+        profilePicture: result.profilePicture,
+        token: _userSessionService.getCurrentUserToken(),
+      );
+
+      await _localDataSource.updateUser(
+        AuthHiveModel(
+          authId: currentUserId,
+          fullName: result.fullName,
+          email: result.email,
+          username: result.username ?? result.email.split('@')[0],
+          phoneNumber: result.phoneNumber,
+          password: result.password,
+          profilePicture: result.profilePicture,
+        ),
+      );
+
+      return Right(result.toEntity());
+    } on DioException catch (e) {
+      if (_shouldFallbackToLocal(e)) {
+        return Left(
+          NetworkFailure(
+            message:
+                'Could not reach server. Check backend connectivity and try again.',
+          ),
+        );
+      }
+      return Left(ServerFailure(message: _extractDioErrorMessage(e)));
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }
@@ -237,6 +349,29 @@ class AuthRepositoryImpl implements IAuthRepository {
       return Left(ServerFailure(message: e.toString()));
     }
   }
+}
+
+bool _shouldFallbackToLocal(DioException exception) {
+  switch (exception.type) {
+    case DioExceptionType.connectionError:
+    case DioExceptionType.connectionTimeout:
+    case DioExceptionType.sendTimeout:
+    case DioExceptionType.receiveTimeout:
+      return true;
+    default:
+      return false;
+  }
+}
+
+String _extractDioErrorMessage(DioException exception) {
+  final responseData = exception.response?.data;
+  if (responseData is Map<String, dynamic>) {
+    final message = responseData['message'];
+    if (message is String && message.trim().isNotEmpty) {
+      return message;
+    }
+  }
+  return exception.message ?? 'Request failed';
 }
 
 // Providers
