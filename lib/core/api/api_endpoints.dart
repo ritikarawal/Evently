@@ -1,32 +1,34 @@
 import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const bool isPhysicalDevice = true;
-
-  static const String compIpAddress = "192.168.18.79";
+  // 🔧 YOUR PC'S WIFI IP ADDRESS (from ipconfig - WiFi adapter)
+  // Change this if your IP changes
+  static const String backendHost = "10.1.6.169";
+  static const int backendPort = 5050;
 
   static String get baseUrl {
-    if (isPhysicalDevice) {
-      return 'http://$compIpAddress:5050/api/';
-    }
-
+    // Same backend for ALL platforms (web and mobile)
     if (kIsWeb) {
-      return 'http://localhost:5050/api/';
+      // Web: Use localhost when running on same machine
+      return 'http://localhost:$backendPort/api/';
     } else if (Platform.isAndroid) {
-      return 'http://10.0.2.2:5050/api/';
+      // Android: Use localhost with ADB port forwarding
+      // Run: adb reverse tcp:5050 tcp:5050
+      return 'http://localhost:$backendPort/api/';
     } else if (Platform.isIOS) {
-      return 'http://localhost:5050/api/';
+      // iOS physical device: Use PC's WiFi IP
+      return 'http://$backendHost:$backendPort/api/';
     } else {
-      return 'http://localhost:5050/api/';
+      // Desktop (Windows/Mac/Linux): Use localhost
+      return 'http://localhost:$backendPort/api/';
     }
   }
 
-  static const Duration connectionTimeout = Duration(seconds: 15);
-  static const Duration receiveTimeout = Duration(seconds: 15);
+  static const Duration connectionTimeout = Duration(seconds: 30);
+  static const Duration receiveTimeout = Duration(seconds: 30);
 
   // Get full URL for uploaded images
   static String getImageUrl(String? relativePath) {
@@ -37,18 +39,14 @@ class ApiEndpoints {
         ? relativePath.substring(1)
         : relativePath;
 
-    if (isPhysicalDevice) {
-      return 'http://$compIpAddress:5050/$cleanPath';
-    }
-
+    // Use same base URL logic for images
     if (kIsWeb) {
-      return 'http://localhost:5050/$cleanPath';
+      return 'http://localhost:$backendPort/$cleanPath';
     } else if (Platform.isAndroid) {
-      return 'http://10.0.2.2:5050/$cleanPath';
-    } else if (Platform.isIOS) {
-      return 'http://localhost:5050/$cleanPath';
+      // Android with ADB port forwarding
+      return 'http://localhost:$backendPort/$cleanPath';
     } else {
-      return 'http://localhost:5050/$cleanPath';
+      return 'http://$backendHost:$backendPort/$cleanPath';
     }
   }
 
