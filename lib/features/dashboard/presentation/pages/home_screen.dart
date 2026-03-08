@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:event_planner/core/localization/app_localizations.dart';
 import 'package:event_planner/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:event_planner/features/event/domain/entities/event.dart';
 import 'package:event_planner/features/event/presentation/pages/event_details_screen.dart';
@@ -98,14 +99,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final eventsAsync = ref.watch(dashboardEventsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text(
-          'Discover & Create',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+        title: Text(
+          '${l10n.tr('discover')} & ${l10n.tr('search')}',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
         ),
         backgroundColor: AppColors.background,
         elevation: 0,

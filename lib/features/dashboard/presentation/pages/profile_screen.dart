@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:event_planner/core/api/api_endpoints.dart';
+import 'package:event_planner/core/localization/app_localizations.dart';
+import 'package:event_planner/core/localization/locale_provider.dart';
 import 'package:event_planner/features/auth/domain/entities/auth_entity.dart';
 import 'package:event_planner/features/auth/domain/entities/update_profile_params.dart';
 import 'package:event_planner/features/auth/presentation/pages/login_screen.dart';
@@ -261,6 +263,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final locale = ref.watch(localeProvider);
     final authState = ref.watch(authViewModelProvider);
     final authViewModel = ref.read(authViewModelProvider.notifier);
     final user = authState.user;
@@ -278,7 +282,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: Text(l10n.tr('profile')),
         elevation: 0,
         backgroundColor: AppColors.background,
         centerTitle: false,
@@ -424,7 +428,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           const SizedBox(height: 20),
                           // Settings Buttons Section
                           _buildExpandableSettingsCard(
-                            title: 'Account Information',
+                            title: l10n.tr('account_information'),
                             icon: Icons.account_box,
                             isExpanded: _expandedAccountSettings,
                             onTap: () {
@@ -468,7 +472,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ),
                           const SizedBox(height: 12),
                           _buildExpandableSettingsCard(
-                            title: 'Preferences',
+                            title: l10n.tr('preferences'),
                             icon: Icons.notifications,
                             isExpanded: _expandedPreferences,
                             onTap: () {
@@ -480,7 +484,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               children: [
                                 _buildSettingsTile(
                                   icon: Icons.notifications,
-                                  label: 'Push Notifications',
+                                  label: l10n.tr('push_notifications'),
                                   subtitle:
                                       'Receive event updates and reminders',
                                   value: _notificationsEnabled,
@@ -497,7 +501,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 ),
                                 _buildSettingsTile(
                                   icon: Icons.email,
-                                  label: 'Email Updates',
+                                  label: l10n.tr('email_updates'),
                                   subtitle: 'Get news and updates via email',
                                   value: _emailUpdatesEnabled,
                                   onChanged: (value) {
@@ -506,12 +510,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     );
                                   },
                                 ),
+                                Divider(
+                                  height: 1,
+                                  color: Colors.grey.shade200,
+                                  thickness: 1,
+                                ),
+                                _buildLanguageTile(
+                                  context: context,
+                                  label: l10n.tr('language'),
+                                  localeCode: locale.languageCode,
+                                ),
                               ],
                             ),
                           ),
                           const SizedBox(height: 12),
                           _buildExpandableSettingsCard(
-                            title: 'Privacy',
+                            title: l10n.tr('privacy'),
                             icon: Icons.privacy_tip,
                             isExpanded: _expandedPrivacySettings,
                             onTap: () {
@@ -522,7 +536,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             },
                             child: _buildSettingsTile(
                               icon: Icons.privacy_tip,
-                              label: 'Public Profile',
+                              label: l10n.tr('public_profile'),
                               subtitle: 'Allow others to see your profile',
                               value: _privacyPublic,
                               onChanged: (value) {
@@ -572,9 +586,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     );
                   },
                   icon: const Icon(Icons.logout, size: 20),
-                  label: const Text(
-                    'Logout',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  label: Text(
+                    l10n.tr('logout'),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
@@ -882,6 +899,49 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             onChanged: onChanged,
             activeColor: AppColors.primary,
             inactiveThumbColor: Colors.grey.shade400,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageTile({
+    required BuildContext context,
+    required String label,
+    required String localeCode,
+  }) {
+    final l10n = context.l10n;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          const Icon(Icons.language, color: AppColors.primary, size: 18),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: localeCode,
+              borderRadius: BorderRadius.circular(12),
+              items: [
+                DropdownMenuItem(value: 'en', child: Text(l10n.tr('english'))),
+                DropdownMenuItem(value: 'ne', child: Text(l10n.tr('nepali'))),
+              ],
+              onChanged: (value) {
+                if (value == null) return;
+                ref.read(localeProvider.notifier).setLocale(Locale(value));
+              },
+            ),
           ),
         ],
       ),

@@ -1,0 +1,18 @@
+{
+  "discover": "डिस्कभर",
+  "messages": "सन्देशहरू",
+  "profile": "प्रोफाइल",
+  "settings": "सेटिङ्स",
+  "matches": "मेलहरू",
+  "search": "खोज",
+  "language": "भाषा",
+  "english": "अंग्रेजी",
+  "nepali": "नेपाली",
+  "push_notifications": "पुष सूचनाहरू",
+  "email_updates": "इमेल अपडेटहरू",
+  "logout": "लगआउट",
+  "account_information": "खाता जानकारी",
+  "preferences": "प्राथमिकताहरू",
+  "privacy": "गोपनीयता",
+  "public_profile": "सार्वजनिक प्रोफाइल"
+}

@@ -1,0 +1,18 @@
+{
+  "discover": "Discover",
+  "messages": "Messages",
+  "profile": "Profile",
+  "settings": "Settings",
+  "matches": "Matches",
+  "search": "Search",
+  "language": "Language",
+  "english": "English",
+  "nepali": "Nepali",
+  "push_notifications": "Push Notifications",
+  "email_updates": "Email Updates",
+  "logout": "Logout",
+  "account_information": "Account Information",
+  "preferences": "Preferences",
+  "privacy": "Privacy",
+  "public_profile": "Public Profile"
+}
