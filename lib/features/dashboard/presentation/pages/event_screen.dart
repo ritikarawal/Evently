@@ -286,28 +286,14 @@ class _EnvelopeEventCardState extends State<_EnvelopeEventCard>
     super.dispose();
   }
 
-  void _toggleEnvelope() {
-    setState(() => _isOpen = !_isOpen);
-    if (_isOpen) {
-      _controller.forward();
-    } else {
-      _controller.reverse();
-    }
-  }
-
   void _handleCardTap() {
-    if (_isOpen) {
-      widget.onViewDetails();
-      return;
-    }
-    _toggleEnvelope();
+    widget.onViewDetails();
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: _handleCardTap,
-      onLongPress: _isOpen ? _toggleEnvelope : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 420),
         curve: Curves.easeInOutCubic,
