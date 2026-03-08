@@ -76,10 +76,8 @@ class _EventScreenState extends ConsumerState<EventScreen>
     final eventsAsync = ref.watch(eventScreenDataProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Events'),
-        backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: true,
         bottom: TabBar(

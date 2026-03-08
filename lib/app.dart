@@ -6,6 +6,7 @@ import 'package:event_planner/core/localization/locale_provider.dart';
 import 'package:event_planner/features/dashboard/presentation/pages/dashboard_screen.dart';
 import 'package:event_planner/features/splash/presentation/pages/Splash_screen.dart';
 import 'package:event_planner/theme/app_theme.dart';
+import 'package:event_planner/theme/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -20,11 +21,14 @@ class App extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authViewModelProvider);
     final locale = ref.watch(localeProvider);
+    final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       initialRoute: '/splash',
       theme: getApplicationTheme(),
+      darkTheme: getDarkApplicationTheme(),
+      themeMode: themeMode,
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [

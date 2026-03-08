@@ -12,7 +12,6 @@ ThemeData getApplicationTheme() {
     colorScheme: ColorScheme.fromSeed(
       seedColor: AppColors.primary,
       primary: AppColors.primary,
-      background: AppColors.background,
     ),
 
     appBarTheme: AppBarTheme(
@@ -67,6 +66,44 @@ ThemeData getApplicationTheme() {
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),
         borderSide: const BorderSide(color: AppColors.glassBorder),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: AppColors.primary),
+      ),
+    ),
+  );
+}
+
+ThemeData getDarkApplicationTheme() {
+  final base = ThemeData.dark(useMaterial3: true);
+
+  return base.copyWith(
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: AppColors.primary,
+      brightness: Brightness.dark,
+    ),
+    scaffoldBackgroundColor: const Color(0xFF121212),
+    appBarTheme: base.appBarTheme.copyWith(
+      backgroundColor: const Color(0xFF1E1E1E),
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+    ),
+    cardTheme: CardThemeData(
+      color: const Color(0xFF1E1E1E),
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: const Color(0xFF1E1E1E),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: Color(0xFF3A3A3A)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),

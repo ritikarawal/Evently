@@ -9,6 +9,7 @@ import 'package:event_planner/features/auth/presentation/pages/login_screen.dart
 import 'package:event_planner/features/auth/presentation/state/auth_state.dart';
 import 'package:event_planner/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:event_planner/theme/app_colors.dart';
+import 'package:event_planner/theme/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -265,6 +266,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final locale = ref.watch(localeProvider);
+    final themeMode = ref.watch(themeModeProvider);
     final authState = ref.watch(authViewModelProvider);
     final authViewModel = ref.read(authViewModelProvider.notifier);
     final user = authState.user;
@@ -280,11 +282,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(l10n.tr('profile')),
         elevation: 0,
-        backgroundColor: AppColors.background,
         centerTitle: false,
         automaticallyImplyLeading: false,
       ),
@@ -519,6 +519,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   context: context,
                                   label: l10n.tr('language'),
                                   localeCode: locale.languageCode,
+                                ),
+                                Divider(
+                                  height: 1,
+                                  color: Colors.grey.shade200,
+                                  thickness: 1,
+                                ),
+                                _buildThemeTile(
+                                  context: context,
+                                  label: l10n.tr('theme_mode'),
+                                  themeMode: themeMode,
                                 ),
                               ],
                             ),
@@ -940,6 +950,63 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               onChanged: (value) {
                 if (value == null) return;
                 ref.read(localeProvider.notifier).setLocale(Locale(value));
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThemeTile({
+    required BuildContext context,
+    required String label,
+    required ThemeMode themeMode,
+  }) {
+    final l10n = context.l10n;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.dark_mode_outlined,
+            color: AppColors.primary,
+            size: 18,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          DropdownButtonHideUnderline(
+            child: DropdownButton<ThemeMode>(
+              value: themeMode,
+              borderRadius: BorderRadius.circular(12),
+              items: [
+                DropdownMenuItem(
+                  value: ThemeMode.light,
+                  child: Text(l10n.tr('light')),
+                ),
+                DropdownMenuItem(
+                  value: ThemeMode.dark,
+                  child: Text(l10n.tr('dark')),
+                ),
+                DropdownMenuItem(
+                  value: ThemeMode.system,
+                  child: Text(l10n.tr('system_default')),
+                ),
+              ],
+              onChanged: (value) {
+                if (value == null) return;
+                ref.read(themeModeProvider.notifier).setThemeMode(value);
               },
             ),
           ),

@@ -103,13 +103,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final eventsAsync = ref.watch(dashboardEventsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
           '${l10n.tr('discover')} & ${l10n.tr('search')}',
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
         ),
-        backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: false,
         automaticallyImplyLeading: false,

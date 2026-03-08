@@ -63,10 +63,8 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
     final vm = ref.read(notificationViewModelProvider.notifier);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Notifications'),
-        backgroundColor: AppColors.background,
         elevation: 0,
         actions: [
           TextButton(
