@@ -4,5 +4,6 @@ import 'package:event_planner/features/chat/domain/entities/chat_message_entity.
 
 abstract class ChatRepository {
   Future<Either<Failure, List<ChatMessageEntity>>> getChatHistory();
+  Future<Either<Failure, int>> getUnreadCount();
   Future<Either<Failure, ChatMessageEntity>> sendUserMessage(String text);
 }

@@ -4,6 +4,7 @@ import 'package:event_planner/features/chat/data/models/chat_message_api_model.d
 
 abstract class IChatRemoteDataSource {
   Future<List<ChatMessageApiModel>> getChatHistory();
+  Future<int> getUnreadCount();
   Future<ChatMessageApiModel> sendUserMessage(String text);
 }
 
@@ -26,6 +27,22 @@ class ChatRemoteDataSource implements IChatRemoteDataSource {
               ChatMessageApiModel.fromJson(Map<String, dynamic>.from(e as Map)),
         )
         .toList();
+  }
+
+  @override
+  Future<int> getUnreadCount() async {
+    final response = await _dio.get(ApiEndpoints.chatUnreadCount);
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      final payload = data['data'];
+      if (payload is Map<String, dynamic>) {
+        final raw = payload['unreadCount'];
+        if (raw is int) return raw;
+        if (raw is num) return raw.toInt();
+        return int.tryParse('$raw') ?? 0;
+      }
+    }
+    return 0;
   }
 
   @override

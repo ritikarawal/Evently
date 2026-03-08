@@ -37,6 +37,20 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
+  Future<Either<Failure, int>> getUnreadCount() async {
+    try {
+      final count = await _remote.getUnreadCount();
+      return Right(count);
+    } on DioException catch (e) {
+      return Left(
+        ServerFailure(message: e.message ?? 'Failed to fetch unread count'),
+      );
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, ChatMessageEntity>> sendUserMessage(
     String text,
   ) async {

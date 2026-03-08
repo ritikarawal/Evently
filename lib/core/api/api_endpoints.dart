@@ -87,6 +87,7 @@ class ApiEndpoints {
 
   // ----------------------- CHAT ------------------------
   static const String chatHistory = 'chat/history';
+  static const String chatUnreadCount = 'chat/unread-count';
   static const String chatSendUser = 'chat/user/send';
   static const String adminChatUsers = 'chat/admin/users';
   static String adminChatUser(String userId) => 'chat/admin/user/$userId';

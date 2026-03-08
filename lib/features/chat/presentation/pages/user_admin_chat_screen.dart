@@ -37,16 +37,6 @@ class _UserAdminChatScreenState extends ConsumerState<UserAdminChatScreen> {
 
     _textController.clear();
     await ref.read(chatViewModelProvider.notifier).sendMessage(text);
-
-    if (!mounted) return;
-    await Future<void>.delayed(const Duration(milliseconds: 80));
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOut,
-      );
-    }
   }
 
   String _formatTime(DateTime? timestamp) {
@@ -62,6 +52,11 @@ class _UserAdminChatScreenState extends ConsumerState<UserAdminChatScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(chatViewModelProvider);
+    final messages = [...state.messages]
+      ..sort(
+        (a, b) =>
+            (b.timestamp ?? DateTime(0)).compareTo(a.timestamp ?? DateTime(0)),
+      );
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -70,8 +65,9 @@ class _UserAdminChatScreenState extends ConsumerState<UserAdminChatScreen> {
         backgroundColor: AppColors.background,
         actions: [
           IconButton(
-            onPressed: () =>
-                ref.read(chatViewModelProvider.notifier).loadMessages(),
+            onPressed: () {
+              ref.read(chatViewModelProvider.notifier).loadMessages();
+            },
             icon: const Icon(Icons.refresh),
           ),
         ],
@@ -81,7 +77,7 @@ class _UserAdminChatScreenState extends ConsumerState<UserAdminChatScreen> {
           Expanded(
             child: state.isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : state.messages.isEmpty
+                : messages.isEmpty
                 ? const Center(
                     child: Text(
                       'No messages yet. Start chatting with admin.',
@@ -89,11 +85,12 @@ class _UserAdminChatScreenState extends ConsumerState<UserAdminChatScreen> {
                     ),
                   )
                 : ListView.builder(
+                    reverse: true,
                     controller: _scrollController,
                     padding: const EdgeInsets.all(12),
-                    itemCount: state.messages.length,
+                    itemCount: messages.length,
                     itemBuilder: (context, index) {
-                      final message = state.messages[index];
+                      final message = messages[index];
                       final isUser = _isFromUser(message.from);
 
                       return Align(
